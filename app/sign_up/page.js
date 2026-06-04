@@ -1,13 +1,34 @@
 "use client";
+import { supabase } from "@/lib/supabaseClient";
 
 import { useState } from "react";
 
-export default function Home() {
+export default function Home()
+ {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+
+  
+  const handleSignUp = async () => {
+  console.log("Sign up button successfully clicked!"); 
+
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        full_name: fullName, 
+      },
+    },
+  });
+
+  console.log("DATA:", data);
+  console.log("ERROR:", error);
+};
+  
 
   const hasMinLength = password.length >= 8;
   const hasUppercase = /[A-Z]/.test(password);
@@ -226,15 +247,12 @@ export default function Home() {
 
             {/* Button */}
             <button
-              disabled={!canCreateAccount}
-              className={`w-full py-3 rounded-xl font-semibold text-white transition-all duration-300 ${
-                canCreateAccount
-                  ? "bg-[#1B2F6B] hover:bg-[#142252] hover:shadow-lg"
-                  : "bg-gray-400 cursor-not-allowed"
-              }`}
-            >
-              Create Account
-            </button>
+  onClick={handleSignUp}
+  // disabled={!canCreateAccount} // Temporarily commented out for testing
+  className="w-full py-3 rounded-xl font-semibold text-white bg-[#1B2F6B] hover:bg-[#142252]"
+>
+  Create Account
+</button>
 
             {/* Login */}
             <p className="text-center text-gray-500 mt-6">
