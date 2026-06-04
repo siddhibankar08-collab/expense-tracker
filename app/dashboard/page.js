@@ -16,9 +16,32 @@ import {
   CreditCard,
   ChevronRight,
 } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function Dashboard() {
+ const router = useRouter();
+const [user, setUser] = useState(null);
+const [loading, setLoading] = useState(true);
+
+useEffect(() => {
+  const checkAuth = async () => {
+    const { data } = await supabase.auth.getUser();
+
+    if (!data.user) {
+      router.push("/login");
+    } else {
+      setUser(data.user);
+    }
+
+    setLoading(false);
+  };
+
+  checkAuth();
+}, []);
+//const [user, setUser] = useState(null);
   const monthlyData = [
     { name: "Jan", amount: 32000 },
     { name: "Feb", amount: 28500 },
@@ -51,7 +74,9 @@ export default function Dashboard() {
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good Morning" : hour < 18 ? "Good Afternoon" : "Good Evening";
-
+if (loading) {
+  return <p className="p-6">Loading...</p>;
+}
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* SIDEBAR */}
@@ -107,7 +132,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                {greeting}, Aarya 👋
+              {greeting}, {user?.email?.split("@")[0] || "User"} 👋
               </h1>
               <p className="text-gray-500 text-sm mt-0.5">
                 Your finances are looking healthy this month
