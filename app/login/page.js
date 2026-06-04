@@ -1,107 +1,199 @@
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
+    <div className="h-screen w-screen flex bg-[#f5f6fa]">
 
-      <div className="w-full max-w-5xl flex">
+      {/* LEFT SIDE */}
+      <div className="w-[50%] bg-[#142F6E] px-10 py-8">
 
-        {/* Left Side */}
-        <div className="w-1/2 flex flex-col justify-center px-10">
+        {/* Logo */}
+        <div className="flex items-center gap-3">
+  <img
+    src="/images/spendwiselogo.png"
+    alt="SpendWise Logo"
+    className="h-12 w-auto"
+  />
 
-          <div className="bg-[#042A5F] w-fit px-6 py-3 rounded">
-            <h1 className="text-white text-2xl font-bold">
-              SpendWise
-            </h1>
+  <h1 className="text-white text-3xl font-bold">
+    SpendWise
+  </h1>
+</div>
+
+        {/* Heading */}
+        <div className="mt-18">
+          <h2 className="text-white text-[34px] font-extrabold leading-tight">
+            Money clarity
+            <br />
+            for life and business.
+          </h2>
+
+          <p className="text-white/90 text-[14px] mt-3 max-w-md leading-7">
+            Track personal expenses and manage multiple shops in
+            one place — with powerful analytics and smart reports.
+          </p>
+        </div>
+
+        {/* Cards */}
+        <div className="grid grid-cols-2 gap-4 mt-4 max-w-[520px]">
+
+          <div className="bg-[#132A55] rounded-xl p-4">
+            <div className="text-green-400 text-lg">💳</div>
+
+            <h3 className="text-white text-sm font-semibold mt-3">
+              Personal Expense Tracking
+            </h3>
+
+            <p className="text-gray-300 text-xs mt-2">
+              Log daily spending and stay on top of your budget
+            </p>
+          </div>
+
+          <div className="bg-[#132A55] rounded-xl p-4">
+            <div className="text-green-400 text-lg">🏪</div>
+
+            <h3 className="text-white text-sm font-semibold mt-3">
+              Multi-Shop Management
+            </h3>
+
+            <p className="text-gray-300 text-xs mt-2">
+              Track finances across all your shops in one place
+            </p>
+          </div>
+
+          <div className="bg-[#132A55] rounded-xl p-4">
+            <div className="text-green-400 text-lg">📈</div>
+
+            <h3 className="text-white text-sm font-semibold mt-3">
+              Smart Analytics
+            </h3>
+
+            <p className="text-gray-300 text-xs mt-2">
+              Profit trends, budgets and category breakdowns
+            </p>
+          </div>
+
+          <div className="bg-[#132A55] rounded-xl p-4">
+            <div className="text-green-400 text-lg">📊</div>
+
+            <h3 className="text-white text-sm font-semibold mt-3">
+              Unified Reports
+            </h3>
+
+            <p className="text-gray-300 text-xs mt-2">
+              Personal and business insights in one dashboard
+            </p>
           </div>
 
         </div>
+      </div>
 
-        {/* Right Side */}
-        <div className="w-1/2 p-10">
+      {/* RIGHT SIDE */}
+      <div className="w-[45%] flex items-center justify-center bg-[#f8f8fb]">
 
-          <h1 className="text-5xl font-extrabold text-[#163559] mb-8">
-            Log In
+        <div className="w-[400px]">
+
+          <h1 className="text-[44px] mt-4 font-bold text-[#163559]">
+            Log in
           </h1>
 
           {/* Email */}
-          <label className="block text-lg font-medium mb-2">
-            Email address
-          </label>
+          <div className="mt-1">
+            <label className="block text-sm mb-1">
+              Email address
+            </label>
 
-          <input
-            type="email"
-            placeholder="Enter your email"
-            className="w-full p-3 rounded-xl bg-gray-100 mb-6"
-          />
+            <input
+                type="email"
+                className="w-full h-10 bg-[#E7E7E7] rounded-2xl px-4 border border-gray-400 outline-none"
+            />
+          </div>
 
           {/* Password */}
-          <label className="block text-lg font-medium mb-2">
-            Password
-          </label>
+<div className="mt-4">
+  <label className="block text-sm mb-2">
+    Password
+  </label>
 
-          <input
-            type="password"
-            placeholder="Enter your password"
-            className="w-full p-3 rounded-xl bg-gray-100"
-          />
+  <div className="relative">
+    <input
+      type="password"
+      className="w-full h-10 bg-[#E7E7E7] rounded-2xl px-4 pr-16 border border-gray-400 outline-none"
+    />
 
-          {/* Remember */}
-          <div className="flex items-center mt-4">
-            <input type="checkbox" />
-            <span className="ml-2 text-sm">
-              Remember me
+    <button
+  type="button"
+  className="absolute right-4 top-1/2 -translate-y-1/2 text-lg"
+>
+  👁
+</button>
+  </div>
+</div>
+
+          {/* Remember + Forgot Password */}
+<div className="flex items-center justify-between mt-3">
+  <div className="flex items-center">
+    <input type="checkbox" />
+
+    <span className="ml-2 text-sm">
+      Remember me
+    </span>
+  </div>
+
+  <p className="text-sm italic text-[#163559] cursor-pointer">
+    Forget Password
+  </p>
+</div>
+
+          {/* Login */}
+          <div className="flex justify-center mt-3">
+            <button className="w-40 h-10 bg-[#163559] text-white text-lg rounded-full font-semibold">
+              Login
+            </button>
+          </div>
+        
+
+          {/* Divider */}
+          <div className="flex items-center my-3">
+            <div className="flex-1 h-px bg-gray-400"></div>
+
+            <span className="px-4 text-sm">
+              or
             </span>
+
+            <div className="flex-1 h-px bg-gray-400"></div>
           </div>
 
-          {/* Login Button */}
-          <button className="mt-6 bg-[#163559] text-white px-10 py-2 rounded-full font-bold">
-            Login
-          </button>
+          {/* Social */}
+          <div className="flex flex-col items-center gap-4">
 
-          {/* Sign Up */}
-          <p className="mt-4 text-sm">
-            Don't have an account?{" "}
-            <span className="font-semibold cursor-pointer">
-              Sign Up
-            </span>
-          </p>
-
-          {/* Forget Password */}
-          <p className="mt-2 text-sm font-medium cursor-pointer">
-            Forget Password?
-          </p>
-
-          {/* OR */}
-          <div className="flex items-center my-8">
-            <hr className="flex-grow border-black" />
-            <span className="mx-4 text-sm">or</span>
-            <hr className="flex-grow border-black" />
-          </div>
-
-          {/* Social Buttons */}
-          <div className="space-y-4">
-
-            <button className="w-full bg-black/20 rounded-lg py-2 text-[#163559] font-semibold">
+            <button className="w-56 h-10 rounded-lg bg-[#C7CCD4] text-[#163559] text-sm font-medium">
               Continue with Google
             </button>
 
-            <button className="w-full bg-black/20 rounded-lg py-2 text-[#163559] font-semibold">
+            <button className="w-56 h-10 rounded-lg bg-[#C7CCD4] text-[#163559] text-sm font-medium">
               Continue with Facebook
             </button>
 
-            <button className="w-full bg-black/20 rounded-lg py-2 text-[#163559] font-semibold">
+            <button className="w-56 h-10 rounded-lg bg-[#C7CCD4] text-[#163559] text-sm font-medium">
               Continue with Apple
             </button>
 
           </div>
+ {/* Links */}
+          <div className="text-center mt-5">
+            <p className="text-xs">
+              Don't have an account?{" "}
+              <span className="font-semibold underline cursor-pointer">
+                Sign up
+              </span>
+            </p>
 
-          <p className="mt-6 text-center text-sm">
-            Sign up with your organisation?
-          </p>
+          </div>
+          <p className="text-center text-xs text-gray-500 mt-8">
+  By continuing, you agree to our Terms & Privacy Policy.
+</p>
 
         </div>
-
       </div>
-
     </div>
   );
 }
