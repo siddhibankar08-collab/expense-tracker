@@ -16,9 +16,55 @@ import {
   CreditCard,
   ChevronRight,
 } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function Dashboard() {
+ const router = useRouter();
+const [user, setUser] = useState(null);
+const [loading, setLoading] = useState(true);
+
+useEffect(() => {
+  const fetchUser = async () => {
+    setLoading(true);
+
+    const { data: authData } = await supabase.auth.getUser();
+
+    if (!authData?.user) {
+      router.push("/login");
+      return;
+    }
+
+    const { data: existingUser } = await supabase
+      .from("users")
+      .select("*")
+      .eq("user_id", authData.user.id)
+      .maybeSingle();
+
+    if (!existingUser) {
+      await supabase.from("users").insert({
+        user_id: authData.user.id,
+        name: authData.user.email.split("@")[0],
+        email: authData.user.email,
+        user_type: "user",
+      });
+    }
+
+    const { data: finalUser } = await supabase
+      .from("users")
+      .select("*")
+      .eq("user_id", authData.user.id)
+      .single();
+
+    setUser(finalUser);
+    setLoading(false);
+  };
+
+  fetchUser();
+}, [router]);
+//const [user, setUser] = useState(null);
   const monthlyData = [
     { name: "Jan", amount: 32000 },
     { name: "Feb", amount: 28500 },
@@ -51,7 +97,9 @@ export default function Dashboard() {
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good Morning" : hour < 18 ? "Good Afternoon" : "Good Evening";
-
+if (loading) {
+  return <p className="p-6">Loading...</p>;
+}
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* SIDEBAR */}
@@ -107,8 +155,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                {greeting}, Aarya 👋
-              </h1>
+              {greeting}, {user?.name || user?.email?.split("@")[0] || "User"} 👋            </h1>
               <p className="text-gray-500 text-sm mt-0.5">
                 Your finances are looking healthy this month
               </p>

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function Home() {
   const [fullName, setFullName] = useState("");
@@ -33,6 +35,48 @@ export default function Home() {
     passwordsMatch &&
     acceptedTerms;
 
+  const router = useRouter();
+
+async function handleSignUp(e) {
+  e.preventDefault();
+
+  if (!canCreateAccount) return;
+
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        full_name: fullName,
+      },
+    },
+  });
+
+  if (error) {
+    console.log("Signup error:", error.message);
+    return;
+  }
+
+  // wait a bit for session to be created
+const { data: { user } } = await supabase.auth.getUser();
+
+if (user) {
+  const { error: insertError } = await supabase
+    .from("users")
+    .insert({
+      user_id: user.id,
+      name: fullName,
+      email: email,
+      user_type: "user",
+    });
+
+  if (insertError) {
+    console.log("INSERT FAILED:", insertError);
+  }
+}
+
+  router.push("/login");
+} 
   return (
     <div className="min-h-screen bg-[#F5F7FB] flex items-center justify-center px-6 py-8">
 <div className="w-full max-w-5xl h-[95vh] bg-white rounded-3xl overflow-hidden shadow-xl grid lg:grid-cols-2">
@@ -104,7 +148,8 @@ export default function Home() {
 
             {/* Full Name */}
             <div className="mb-5">
-<label className="block text-gray-700 text-sm font-medium mb-1">                Full Name
+              <label className="block text-gray-700 font-medium mb-2">
+                Full Name
               </label>
 
               <input
@@ -112,13 +157,14 @@ export default function Home() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="John Doe"
-                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
+                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
               />
             </div>
 
             {/* Email */}
             <div className="mb-5">
-<label className="block text-gray-700 text-sm font-medium mb-1">                Email Address
+              <label className="block text-gray-700 font-medium mb-2">
+                Email Address
               </label>
 
               <input
@@ -126,13 +172,14 @@ export default function Home() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="john@example.com"
-                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
+                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
               />
             </div>
 
             {/* Password */}
             <div className="mb-5">
-<label className="block text-gray-700 text-sm font-medium mb-1">                Password
+              <label className="block text-gray-700 font-medium mb-2">
+                Password
               </label>
 
               <input
@@ -140,36 +187,38 @@ export default function Home() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Create a strong password"
-                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
+                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
               />
 
               {password.length > 0 && (
-<div className="mt-2 space-y-0.5 text-xs">                  <p className={hasMinLength ? "text-green-600" : "text-red-500"}>
+                <div className="mt-3 space-y-1 text-sm">
+                  <p className={hasMinLength ? "text-green-600" : "text-red-500"}>
                     {hasMinLength ? "✓" : "✗"} At least 8 characters
                   </p>
 
-                  <p className={hasUppercase ? "text-green-600" : "text-red-500"}>
-                    {hasUppercase ? "✓" : "✗"} One uppercase letter
-                  </p>
+        <p className={hasUppercase ? "text-green-600" : "text-red-500"}>
+          {hasUppercase ? "✓" : "✗"} One uppercase letter
+        </p>
 
-                  <p className={hasLowercase ? "text-green-600" : "text-red-500"}>
-                    {hasLowercase ? "✓" : "✗"} One lowercase letter
-                  </p>
+        <p className={hasLowercase ? "text-green-600" : "text-red-500"}>
+          {hasLowercase ? "✓" : "✗"} One lowercase letter
+        </p>
 
-                  <p className={hasNumber ? "text-green-600" : "text-red-500"}>
-                    {hasNumber ? "✓" : "✗"} One number
-                  </p>
+        <p className={hasNumber ? "text-green-600" : "text-red-500"}>
+          {hasNumber ? "✓" : "✗"} One number
+        </p>
 
-                  <p className={hasSpecial ? "text-green-600" : "text-red-500"}>
-                    {hasSpecial ? "✓" : "✗"} One special character
-                  </p>
-                </div>
-              )}
-            </div>
+        <p className={hasSpecial ? "text-green-600" : "text-red-500"}>
+          {hasSpecial ? "✓" : "✗"} One special character
+        </p>
+      </div>
+    )}
+  </div>
 
             {/* Confirm Password */}
             <div className="mb-5">
-<label className="block text-gray-700 text-sm font-medium mb-1">                Confirm Password
+              <label className="block text-gray-700 font-medium mb-2">
+                Confirm Password
               </label>
 
               <input
@@ -179,43 +228,40 @@ export default function Home() {
                   setConfirmPassword(e.target.value)
                 }
                 placeholder="Confirm your password"
-                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
+                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
               />
 
-              {confirmPassword.length > 0 && (
-                <p
-                  className={`mt-2 text-sm ${
-                    passwordsMatch
-                      ? "text-green-600"
-                      : "text-red-500"
-                  }`}
-                >
-                  {passwordsMatch
-                    ? "✓ Passwords match"
-                    : "✗ Passwords do not match"}
-                </p>
-              )}
-            </div>
+    {confirmPassword.length > 0 && (
+      <p
+        className={`mt-2 text-sm ${
+          passwordsMatch ? "text-green-600" : "text-red-500"
+        }`}
+      >
+        {passwordsMatch
+          ? "✓ Passwords match"
+          : "✗ Passwords do not match"}
+      </p>
+    )}
+  </div>
 
-            {/* Terms */}
-            <div className="flex items-start gap-3 mb-6">
-              <input
-                type="checkbox"
-                checked={acceptedTerms}
-                onChange={(e) =>
-                  setAcceptedTerms(e.target.checked)
-                }
-                className="h-4 w-4 mt-1 accent-[#1B2F6B]"
-              />
+  {/* Terms */}
+  <div className="flex items-start gap-3 mb-6">
+    <input
+      type="checkbox"
+      checked={acceptedTerms}
+      onChange={(e) => setAcceptedTerms(e.target.checked)}
+      className="h-4 w-4 mt-1 accent-[#1B2F6B]"
+    />
 
-<p className="text-xs text-gray-600">                I agree to the Terms of Service and Privacy Policy.
+              <p className="text-sm text-gray-600">
+                I agree to the Terms of Service and Privacy Policy.
               </p>
             </div>
 
             {/* Button */}
             <button
               disabled={!canCreateAccount}
-              className={`w-full py-2.5 rounded-xl font-semibold text-white transition-all duration-300 ${
+              className={`w-full py-3 rounded-xl font-semibold text-white transition-all duration-300 ${
                 canCreateAccount
                   ? "bg-[#1B2F6B] hover:bg-[#142252] hover:shadow-lg"
                   : "bg-gray-400 cursor-not-allowed"
@@ -225,15 +271,16 @@ export default function Home() {
             </button>
 
             {/* Login */}
-<p className="text-center text-sm text-gray-500 mt-4">              Already have an account?{" "}
+            <p className="text-center text-gray-500 mt-6">
+              Already have an account?{" "}
               <span className="text-[#1B2F6B] font-semibold cursor-pointer hover:underline">
                 Log In
               </span>
             </p>
 
             {/* Privacy */}
-<div className="mt-5 text-center">
-                <p className="text-xs text-gray-400 italic">
+            <div className="mt-8 text-center">
+              <p className="text-xs text-gray-400 italic">
                 Your data is encrypted and securely stored.
                 SpendWise never sells your personal information.
               </p>
