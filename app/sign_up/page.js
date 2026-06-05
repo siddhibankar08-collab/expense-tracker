@@ -35,41 +35,38 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#F5F7FB] flex items-center justify-center px-6 py-8">
-      <div className="w-full max-w-6xl bg-white rounded-3xl overflow-hidden shadow-xl grid lg:grid-cols-2">
-
+<div className="w-full max-w-5xl h-[95vh] bg-white rounded-3xl overflow-hidden shadow-xl grid lg:grid-cols-2">
         {/* LEFT SIDE */}
-        <div className="bg-[#1B2F6B] text-white p-10 flex flex-col justify-between">
+        <div className="bg-[#1B2F6B] text-white p-4 flex flex-col justify-between">
           <div>
             <div className="inline-flex items-center bg-[#233A79] px-5 py-3 rounded-xl mb-10">
-              <span className="text-3xl mr-2">📈</span>
-              <span className="text-3xl font-bold">SpendWise</span>
+              <span className="text-2xl mr-2">📈</span>
+              <span className="text-2xl font-bold">SpendWise</span>
             </div>
 
-            <h1 className="text-5xl font-bold leading-tight mb-6">
+            <h1 className="text-3xl font-bold leading-tight mb-4">
               Money clarity
               <br />
               for life and business.
             </h1>
 
-            <p className="text-blue-100 text-lg">
+            <p className="text-blue-100 text-sm">
               Manage personal finances and business expenses
               from one powerful dashboard.
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mt-12">
-            <div className="bg-[#233A79] rounded-2xl p-4">
-              <h3 className="font-semibold mb-2">
-                Expense Tracking
+            <div className="bg-[#233A79] rounded-xl p-3">
+              <h3 className="font-semibold text-sm mb-1">                Expense Tracking
               </h3>
-              <p className="text-sm text-blue-100">
+              <p className="text-xs text-blue-100">
                 Monitor every transaction.
               </p>
             </div>
 
             <div className="bg-[#233A79] rounded-2xl p-4">
-              <h3 className="font-semibold mb-2">
-                Business Insights
+              <h3 className="font-semibold text-sm mb-1">                Business Insights
               </h3>
               <p className="text-sm text-blue-100">
                 Understand revenue trends.
@@ -77,8 +74,7 @@ export default function Home() {
             </div>
 
             <div className="bg-[#233A79] rounded-2xl p-4">
-              <h3 className="font-semibold mb-2">
-                Smart Reports
+<h3 className="font-semibold text-sm mb-1">                Smart Reports
               </h3>
               <p className="text-sm text-blue-100">
                 Generate detailed summaries.
@@ -86,8 +82,7 @@ export default function Home() {
             </div>
 
             <div className="bg-[#233A79] rounded-2xl p-4">
-              <h3 className="font-semibold mb-2">
-                Secure Data
+<h3 className="font-semibold text-sm mb-1">                Secure Data
               </h3>
               <p className="text-sm text-blue-100">
                 Protected and encrypted.
@@ -97,21 +92,19 @@ export default function Home() {
         </div>
 
         {/* RIGHT SIDE */}
-        <div className="flex items-center justify-center p-10">
-          <div className="w-full max-w-md">
+        <div className="flex items-center justify-center p-4">
+          <div className="w-full max-w-sm">
 
-            <h2 className="text-4xl font-bold text-[#1B2F6B] mb-2">
+            <h2 className="text-3xl font-bold text-[#1B2F6B] mb-1">
               Create Account
             </h2>
 
-            <p className="text-gray-500 mb-8">
-              Start your financial journey with SpendWise.
+<p className="text-gray-500 text-sm mb-5">              Start your financial journey with SpendWise.
             </p>
 
             {/* Full Name */}
             <div className="mb-5">
-              <label className="block text-gray-700 font-medium mb-2">
-                Full Name
+<label className="block text-gray-700 text-sm font-medium mb-1">                Full Name
               </label>
 
               <input
@@ -119,14 +112,13 @@ export default function Home() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="John Doe"
-                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
+                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
               />
             </div>
 
             {/* Email */}
             <div className="mb-5">
-              <label className="block text-gray-700 font-medium mb-2">
-                Email Address
+<label className="block text-gray-700 text-sm font-medium mb-1">                Email Address
               </label>
 
               <input
@@ -134,14 +126,13 @@ export default function Home() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="john@example.com"
-                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
+                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
               />
             </div>
 
             {/* Password */}
             <div className="mb-5">
-              <label className="block text-gray-700 font-medium mb-2">
-                Password
+<label className="block text-gray-700 text-sm font-medium mb-1">                Password
               </label>
 
               <input
@@ -149,12 +140,11 @@ export default function Home() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Create a strong password"
-                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
+                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
               />
 
               {password.length > 0 && (
-                <div className="mt-3 space-y-1 text-sm">
-                  <p className={hasMinLength ? "text-green-600" : "text-red-500"}>
+<div className="mt-2 space-y-0.5 text-xs">                  <p className={hasMinLength ? "text-green-600" : "text-red-500"}>
                     {hasMinLength ? "✓" : "✗"} At least 8 characters
                   </p>
 
@@ -179,8 +169,7 @@ export default function Home() {
 
             {/* Confirm Password */}
             <div className="mb-5">
-              <label className="block text-gray-700 font-medium mb-2">
-                Confirm Password
+<label className="block text-gray-700 text-sm font-medium mb-1">                Confirm Password
               </label>
 
               <input
@@ -190,7 +179,7 @@ export default function Home() {
                   setConfirmPassword(e.target.value)
                 }
                 placeholder="Confirm your password"
-                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
+                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
               />
 
               {confirmPassword.length > 0 && (
@@ -219,15 +208,14 @@ export default function Home() {
                 className="h-4 w-4 mt-1 accent-[#1B2F6B]"
               />
 
-              <p className="text-sm text-gray-600">
-                I agree to the Terms of Service and Privacy Policy.
+<p className="text-xs text-gray-600">                I agree to the Terms of Service and Privacy Policy.
               </p>
             </div>
 
             {/* Button */}
             <button
               disabled={!canCreateAccount}
-              className={`w-full py-3 rounded-xl font-semibold text-white transition-all duration-300 ${
+              className={`w-full py-2.5 rounded-xl font-semibold text-white transition-all duration-300 ${
                 canCreateAccount
                   ? "bg-[#1B2F6B] hover:bg-[#142252] hover:shadow-lg"
                   : "bg-gray-400 cursor-not-allowed"
@@ -237,16 +225,15 @@ export default function Home() {
             </button>
 
             {/* Login */}
-            <p className="text-center text-gray-500 mt-6">
-              Already have an account?{" "}
+<p className="text-center text-sm text-gray-500 mt-4">              Already have an account?{" "}
               <span className="text-[#1B2F6B] font-semibold cursor-pointer hover:underline">
                 Log In
               </span>
             </p>
 
             {/* Privacy */}
-            <div className="mt-8 text-center">
-              <p className="text-xs text-gray-400 italic">
+<div className="mt-5 text-center">
+                <p className="text-xs text-gray-400 italic">
                 Your data is encrypted and securely stored.
                 SpendWise never sells your personal information.
               </p>

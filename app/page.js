@@ -51,11 +51,11 @@ export default function Home() {
           </p>
         </div>
 
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mt-6 text-center text-slate-900 leading-tight">
+        <h1 className="text-2xl md:text-5xl lg:text-6xl font-extrabold mt-8 text-center text-slate-900 leading-tight">
           Track every dollar across your
         </h1>
 
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#052E67] mt-2 text-center leading-tight">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#052E67] mt-1 text-center leading-tight">
           Life and Shops.
         </h1>
 
