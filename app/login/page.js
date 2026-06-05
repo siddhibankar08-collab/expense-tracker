@@ -14,18 +14,29 @@ const handleLogin = async () => {
     password,
   });
 
-  console.log("DATA:", data);
-  console.log("ERROR:", error);
+  if (error) {
+    console.log("Login error:", error.message);
+    return;
+  }
 
   if (data?.session) {
     router.push("/dashboard");
   }
 };
-  
-
   const togglePassword = () => {
     console.log("toggle password");
   };
+  async function handleGoogleLogin() {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+    redirectTo: `${window.location.origin}/dashboard`  },
+  });
+
+  if (error) {
+    console.log("Google login error:", error.message);
+  }
+}
 
   return (
     <div className="h-screen w-screen flex bg-[#f5f6fa]">
@@ -184,7 +195,9 @@ const handleLogin = async () => {
           {/* Social */}
           <div className="flex flex-col items-center gap-4">
 
-            <button className="w-56 h-10 rounded-lg bg-[#C7CCD4] text-[#163559] text-sm font-medium">
+            <button
+              onClick={handleGoogleLogin} 
+            className="w-56 h-10 rounded-lg bg-[#C7CCD4] text-[#163559] text-sm font-medium">
               Continue with Google
             </button>
 

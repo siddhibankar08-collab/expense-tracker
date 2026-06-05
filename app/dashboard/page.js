@@ -27,20 +27,43 @@ const [user, setUser] = useState(null);
 const [loading, setLoading] = useState(true);
 
 useEffect(() => {
-  const checkAuth = async () => {
-    const { data } = await supabase.auth.getUser();
+  const fetchUser = async () => {
+    setLoading(true);
 
-    if (!data.user) {
+    const { data: authData } = await supabase.auth.getUser();
+
+    if (!authData?.user) {
       router.push("/login");
-    } else {
-      setUser(data.user);
+      return;
     }
 
+    const { data: existingUser } = await supabase
+      .from("users")
+      .select("*")
+      .eq("user_id", authData.user.id)
+      .maybeSingle();
+
+    if (!existingUser) {
+      await supabase.from("users").insert({
+        user_id: authData.user.id,
+        name: authData.user.email.split("@")[0],
+        email: authData.user.email,
+        user_type: "user",
+      });
+    }
+
+    const { data: finalUser } = await supabase
+      .from("users")
+      .select("*")
+      .eq("user_id", authData.user.id)
+      .single();
+
+    setUser(finalUser);
     setLoading(false);
   };
 
-  checkAuth();
-}, []);
+  fetchUser();
+}, [router]);
 //const [user, setUser] = useState(null);
   const monthlyData = [
     { name: "Jan", amount: 32000 },
@@ -132,8 +155,7 @@ if (loading) {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-              {greeting}, {user?.email?.split("@")[0] || "User"} 👋
-              </h1>
+              {greeting}, {user?.name || user?.email?.split("@")[0] || "User"} 👋            </h1>
               <p className="text-gray-500 text-sm mt-0.5">
                 Your finances are looking healthy this month
               </p>

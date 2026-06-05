@@ -40,9 +40,7 @@ export default function Home() {
 async function handleSignUp(e) {
   e.preventDefault();
 
-  if (!canCreateAccount) {
-    return;
-  }
+  if (!canCreateAccount) return;
 
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -55,14 +53,30 @@ async function handleSignUp(e) {
   });
 
   if (error) {
-    // for now, just log it; later we can show it in the UI
-    console.error("Signup error:", error.message);
+    console.log("Signup error:", error.message);
     return;
   }
 
-  // signup OK – maybe redirect to login
+  // wait a bit for session to be created
+const { data: { user } } = await supabase.auth.getUser();
+
+if (user) {
+  const { error: insertError } = await supabase
+    .from("users")
+    .insert({
+      user_id: user.id,
+      name: fullName,
+      email: email,
+      user_type: "user",
+    });
+
+  if (insertError) {
+    console.log("INSERT FAILED:", insertError);
+  }
+}
+
   router.push("/login");
-}  
+} 
   return (
     <div className="min-h-screen bg-[#F5F7FB] flex items-center justify-center px-6 py-8">
       <div className="w-full max-w-6xl bg-white rounded-3xl overflow-hidden shadow-xl grid lg:grid-cols-2">
