@@ -198,15 +198,18 @@ const handleLogin = async () => {
 
           </div>
 
-          {/* Links */}
-          <div className="text-center mt-5">
-            <p className="text-xs">
-              Don't have an account?{" "}
-              <span className="font-semibold underline cursor-pointer">
-                Sign up
-              </span>
-            </p>
-          </div>
+            {/* Links */}
+            <div className="text-center mt-5">
+              <p className="text-xs">
+                Don't have an account?{" "}
+                <span
+                  className="font-semibold underline cursor-pointer"
+                  onClick={() => router.push("/sign_up")}
+                >
+                  Sign up
+                </span>
+              </p>
+            </div>
 
           <p className="text-center text-xs text-gray-500 mt-8">
             By continuing, you agree to our Terms & Privacy Policy.

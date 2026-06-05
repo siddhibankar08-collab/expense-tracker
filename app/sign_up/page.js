@@ -1,34 +1,15 @@
 "use client";
-import { supabase } from "@/lib/supabaseClient";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
 
-export default function Home()
- {
+export default function Home() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-
-  
-  const handleSignUp = async () => {
-  console.log("Sign up button successfully clicked!"); 
-
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: fullName, 
-      },
-    },
-  });
-
-  console.log("DATA:", data);
-  console.log("ERROR:", error);
-};
-  
 
   const hasMinLength = password.length >= 8;
   const hasUppercase = /[A-Z]/.test(password);
@@ -54,6 +35,34 @@ export default function Home()
     passwordsMatch &&
     acceptedTerms;
 
+  const router = useRouter();
+
+async function handleSignUp(e) {
+  e.preventDefault();
+
+  if (!canCreateAccount) {
+    return;
+  }
+
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        full_name: fullName,
+      },
+    },
+  });
+
+  if (error) {
+    // for now, just log it; later we can show it in the UI
+    console.error("Signup error:", error.message);
+    return;
+  }
+
+  // signup OK – maybe redirect to login
+  router.push("/login");
+}  
   return (
     <div className="min-h-screen bg-[#F5F7FB] flex items-center justify-center px-6 py-8">
       <div className="w-full max-w-6xl bg-white rounded-3xl overflow-hidden shadow-xl grid lg:grid-cols-2">
@@ -129,146 +138,146 @@ export default function Home()
               Start your financial journey with SpendWise.
             </p>
 
-            {/* Full Name */}
-            <div className="mb-5">
-              <label className="block text-gray-700 font-medium mb-2">
-                Full Name
-              </label>
+          <form onSubmit={handleSignUp}>
+  {/* Full Name */}
+  <div className="mb-5">
+    <label className="block text-gray-700 font-medium mb-2">
+      Full Name
+    </label>
 
-              <input
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="John Doe"
-                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
-              />
-            </div>
+    <input
+      type="text"
+      value={fullName}
+      onChange={(e) => setFullName(e.target.value)}
+      placeholder="John Doe"
+      className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
+    />
+  </div>
 
-            {/* Email */}
-            <div className="mb-5">
-              <label className="block text-gray-700 font-medium mb-2">
-                Email Address
-              </label>
+  {/* Email */}
+  <div className="mb-5">
+    <label className="block text-gray-700 font-medium mb-2">
+      Email Address
+    </label>
 
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="john@example.com"
-                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
-              />
-            </div>
+    <input
+      type="email"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+      placeholder="john@example.com"
+      className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
+    />
+  </div>
 
-            {/* Password */}
-            <div className="mb-5">
-              <label className="block text-gray-700 font-medium mb-2">
-                Password
-              </label>
+  {/* Password */}
+  <div className="mb-5">
+    <label className="block text-gray-700 font-medium mb-2">
+      Password
+    </label>
 
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Create a strong password"
-                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
-              />
+    <input
+      type="password"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      placeholder="Create a strong password"
+      className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
+    />
 
-              {password.length > 0 && (
-                <div className="mt-3 space-y-1 text-sm">
-                  <p className={hasMinLength ? "text-green-600" : "text-red-500"}>
-                    {hasMinLength ? "✓" : "✗"} At least 8 characters
-                  </p>
+    {password.length > 0 && (
+      <div className="mt-3 space-y-1 text-sm">
+        <p className={hasMinLength ? "text-green-600" : "text-red-500"}>
+          {hasMinLength ? "✓" : "✗"} At least 8 characters
+        </p>
 
-                  <p className={hasUppercase ? "text-green-600" : "text-red-500"}>
-                    {hasUppercase ? "✓" : "✗"} One uppercase letter
-                  </p>
+        <p className={hasUppercase ? "text-green-600" : "text-red-500"}>
+          {hasUppercase ? "✓" : "✗"} One uppercase letter
+        </p>
 
-                  <p className={hasLowercase ? "text-green-600" : "text-red-500"}>
-                    {hasLowercase ? "✓" : "✗"} One lowercase letter
-                  </p>
+        <p className={hasLowercase ? "text-green-600" : "text-red-500"}>
+          {hasLowercase ? "✓" : "✗"} One lowercase letter
+        </p>
 
-                  <p className={hasNumber ? "text-green-600" : "text-red-500"}>
-                    {hasNumber ? "✓" : "✗"} One number
-                  </p>
+        <p className={hasNumber ? "text-green-600" : "text-red-500"}>
+          {hasNumber ? "✓" : "✗"} One number
+        </p>
 
-                  <p className={hasSpecial ? "text-green-600" : "text-red-500"}>
-                    {hasSpecial ? "✓" : "✗"} One special character
-                  </p>
-                </div>
-              )}
-            </div>
+        <p className={hasSpecial ? "text-green-600" : "text-red-500"}>
+          {hasSpecial ? "✓" : "✗"} One special character
+        </p>
+      </div>
+    )}
+  </div>
 
-            {/* Confirm Password */}
-            <div className="mb-5">
-              <label className="block text-gray-700 font-medium mb-2">
-                Confirm Password
-              </label>
+  {/* Confirm Password */}
+  <div className="mb-5">
+    <label className="block text-gray-700 font-medium mb-2">
+      Confirm Password
+    </label>
 
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) =>
-                  setConfirmPassword(e.target.value)
-                }
-                placeholder="Confirm your password"
-                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
-              />
+    <input
+      type="password"
+      value={confirmPassword}
+      onChange={(e) => setConfirmPassword(e.target.value)}
+      placeholder="Confirm your password"
+      className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
+    />
 
-              {confirmPassword.length > 0 && (
-                <p
-                  className={`mt-2 text-sm ${
-                    passwordsMatch
-                      ? "text-green-600"
-                      : "text-red-500"
-                  }`}
-                >
-                  {passwordsMatch
-                    ? "✓ Passwords match"
-                    : "✗ Passwords do not match"}
-                </p>
-              )}
-            </div>
+    {confirmPassword.length > 0 && (
+      <p
+        className={`mt-2 text-sm ${
+          passwordsMatch ? "text-green-600" : "text-red-500"
+        }`}
+      >
+        {passwordsMatch
+          ? "✓ Passwords match"
+          : "✗ Passwords do not match"}
+      </p>
+    )}
+  </div>
 
-            {/* Terms */}
-            <div className="flex items-start gap-3 mb-6">
-              <input
-                type="checkbox"
-                checked={acceptedTerms}
-                onChange={(e) =>
-                  setAcceptedTerms(e.target.checked)
-                }
-                className="h-4 w-4 mt-1 accent-[#1B2F6B]"
-              />
+  {/* Terms */}
+  <div className="flex items-start gap-3 mb-6">
+    <input
+      type="checkbox"
+      checked={acceptedTerms}
+      onChange={(e) => setAcceptedTerms(e.target.checked)}
+      className="h-4 w-4 mt-1 accent-[#1B2F6B]"
+    />
 
-              <p className="text-sm text-gray-600">
-                I agree to the Terms of Service and Privacy Policy.
-              </p>
-            </div>
+    <p className="text-sm text-gray-600">
+      I agree to the Terms of Service and Privacy Policy.
+    </p>
+  </div>
 
-            {/* Button */}
-            <button
-  onClick={handleSignUp}
-  // disabled={!canCreateAccount} // Temporarily commented out for testing
-  className="w-full py-3 rounded-xl font-semibold text-white bg-[#1B2F6B] hover:bg-[#142252]"
->
-  Create Account
-</button>
+  {/* Button */}
+  <button
+    type="submit"
+    disabled={!canCreateAccount}
+    className={`w-full py-3 rounded-xl font-semibold text-white transition-all duration-300 ${
+      canCreateAccount
+        ? "bg-[#1B2F6B] hover:bg-[#142252] hover:shadow-lg"
+        : "bg-gray-400 cursor-not-allowed"
+    }`}
+  >
+    Create Account
+  </button>
+</form>
 
-            {/* Login */}
-            <p className="text-center text-gray-500 mt-6">
-              Already have an account?{" "}
-              <span className="text-[#1B2F6B] font-semibold cursor-pointer hover:underline">
-                Log In
-              </span>
-            </p>
+{/* Login */}
+<p className="text-center text-gray-500 mt-6">
+  Already have an account?{" "}
+  <span className="text-[#1B2F6B] font-semibold cursor-pointer hover:underline">
+    Log In
+  </span>
+</p>
 
-            {/* Privacy */}
-            <div className="mt-8 text-center">
-              <p className="text-xs text-gray-400 italic">
-                Your data is encrypted and securely stored.
-                SpendWise never sells your personal information.
-              </p>
-            </div>
+{/* Privacy */}
+<div className="mt-8 text-center">
+  <p className="text-xs text-gray-400 italic">
+    Your data is encrypted and securely stored.
+    SpendWise never sells your personal information.
+  </p>
+</div>
 
           </div>
         </div>
