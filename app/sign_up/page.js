@@ -1,5 +1,6 @@
-"use client";
 
+"use client";
+import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
@@ -79,14 +80,23 @@ if (user) {
 } 
   return (
     <div className="min-h-screen bg-[#F5F7FB] flex items-center justify-center px-6 py-8">
-<div className="w-full max-w-5xl h-[95vh] bg-white rounded-3xl overflow-hidden shadow-xl grid lg:grid-cols-2">
+<div className="w-full max-w-5xl  bg-white rounded-3xl overflow-hidden shadow-xl grid lg:grid-cols-2">
         {/* LEFT SIDE */}
         <div className="bg-[#1B2F6B] text-white p-4 flex flex-col justify-between">
           <div>
-            <div className="inline-flex items-center bg-[#233A79] px-5 py-3 rounded-xl mb-10">
-              <span className="text-2xl mr-2">📈</span>
-              <span className="text-2xl font-bold">SpendWise</span>
-            </div>
+            <div className="inline-flex items-center bg-[#233A79] px-4 py-2 rounded-xl mb-8">
+  <Image
+    src="/images/spendwiselogo.png"
+    alt="SpendWise Logo"
+    width={60}
+    height={60}
+    className="mr-3"
+  />
+
+  <span className="text-2xl font-bold">
+    SpendWise
+  </span>
+</div>
 
             <h1 className="text-3xl font-bold leading-tight mb-4">
               Money clarity
