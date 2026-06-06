@@ -80,7 +80,7 @@ if (user) {
 } 
   return (
     <div className="min-h-screen bg-[#F5F7FB] flex items-center justify-center px-6 py-8">
-<div className="w-full max-w-5xl  bg-white rounded-3xl overflow-hidden shadow-xl grid lg:grid-cols-2">
+<div className="w-full max-w-5xl h-[95vh] bg-white rounded-3xl overflow-hidden shadow-xl grid lg:grid-cols-2">
         {/* LEFT SIDE */}
         <div className="bg-[#1B2F6B] text-white p-4 flex flex-col justify-between">
           <div>
@@ -156,55 +156,56 @@ if (user) {
 <p className="text-gray-500 text-sm mb-5">              Start your financial journey with SpendWise.
             </p>
 
-            {/* Full Name */}
-            <div className="mb-5">
-              <label className="block text-gray-700 font-medium mb-2">
-                Full Name
-              </label>
+            <form onSubmit={handleSignUp}>
+  {/* Full Name */}
+  <div className="mb-5">
+    <label className="block text-gray-700 font-medium mb-2">
+      Full Name
+    </label>
 
-              <input
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="John Doe"
-                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
-              />
-            </div>
+    <input
+      type="text"
+      value={fullName}
+      onChange={(e) => setFullName(e.target.value)}
+      placeholder="John Doe"
+      className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
+    />
+  </div>
 
-            {/* Email */}
-            <div className="mb-5">
-              <label className="block text-gray-700 font-medium mb-2">
-                Email Address
-              </label>
+  {/* Email */}
+  <div className="mb-5">
+    <label className="block text-gray-700 font-medium mb-2">
+      Email Address
+    </label>
 
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="john@example.com"
-                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
-              />
-            </div>
+    <input
+      type="email"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+      placeholder="john@example.com"
+      className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
+    />
+  </div>
 
-            {/* Password */}
-            <div className="mb-5">
-              <label className="block text-gray-700 font-medium mb-2">
-                Password
-              </label>
+  {/* Password */}
+  <div className="mb-5">
+    <label className="block text-gray-700 font-medium mb-2">
+      Password
+    </label>
 
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Create a strong password"
-                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
-              />
+    <input
+      type="password"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      placeholder="Create a strong password"
+      className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
+    />
 
-              {password.length > 0 && (
-                <div className="mt-3 space-y-1 text-sm">
-                  <p className={hasMinLength ? "text-green-600" : "text-red-500"}>
-                    {hasMinLength ? "✓" : "✗"} At least 8 characters
-                  </p>
+    {password.length > 0 && (
+      <div className="mt-3 space-y-1 text-sm">
+        <p className={hasMinLength ? "text-green-600" : "text-red-500"}>
+          {hasMinLength ? "✓" : "✗"} At least 8 characters
+        </p>
 
         <p className={hasUppercase ? "text-green-600" : "text-red-500"}>
           {hasUppercase ? "✓" : "✗"} One uppercase letter
@@ -225,21 +226,19 @@ if (user) {
     )}
   </div>
 
-            {/* Confirm Password */}
-            <div className="mb-5">
-              <label className="block text-gray-700 font-medium mb-2">
-                Confirm Password
-              </label>
+  {/* Confirm Password */}
+  <div className="mb-5">
+    <label className="block text-gray-700 font-medium mb-2">
+      Confirm Password
+    </label>
 
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) =>
-                  setConfirmPassword(e.target.value)
-                }
-                placeholder="Confirm your password"
-                className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
-              />
+    <input
+      type="password"
+      value={confirmPassword}
+      onChange={(e) => setConfirmPassword(e.target.value)}
+      placeholder="Confirm your password"
+      className="w-full bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#1B2F6B]"
+    />
 
     {confirmPassword.length > 0 && (
       <p
@@ -263,38 +262,40 @@ if (user) {
       className="h-4 w-4 mt-1 accent-[#1B2F6B]"
     />
 
-              <p className="text-sm text-gray-600">
-                I agree to the Terms of Service and Privacy Policy.
-              </p>
-            </div>
+    <p className="text-sm text-gray-600">
+      I agree to the Terms of Service and Privacy Policy.
+    </p>
+  </div>
 
-            {/* Button */}
-            <button
-              disabled={!canCreateAccount}
-              className={`w-full py-3 rounded-xl font-semibold text-white transition-all duration-300 ${
-                canCreateAccount
-                  ? "bg-[#1B2F6B] hover:bg-[#142252] hover:shadow-lg"
-                  : "bg-gray-400 cursor-not-allowed"
-              }`}
-            >
-              Create Account
-            </button>
+  {/* Button */}
+  <button
+    type="submit"
+    disabled={!canCreateAccount}
+    className={`w-full py-3 rounded-xl font-semibold text-white transition-all duration-300 ${
+      canCreateAccount
+        ? "bg-[#1B2F6B] hover:bg-[#142252] hover:shadow-lg"
+        : "bg-gray-400 cursor-not-allowed"
+    }`}
+  >
+    Create Account
+  </button>
+</form>
 
-            {/* Login */}
-            <p className="text-center text-gray-500 mt-6">
-              Already have an account?{" "}
-              <span className="text-[#1B2F6B] font-semibold cursor-pointer hover:underline">
-                Log In
-              </span>
-            </p>
+{/* Login */}
+<p className="text-center text-gray-500 mt-6">
+  Already have an account?{" "}
+  <span className="text-[#1B2F6B] font-semibold cursor-pointer hover:underline">
+    Log In
+  </span>
+</p>
 
-            {/* Privacy */}
-            <div className="mt-8 text-center">
-              <p className="text-xs text-gray-400 italic">
-                Your data is encrypted and securely stored.
-                SpendWise never sells your personal information.
-              </p>
-            </div>
+{/* Privacy */}
+<div className="mt-8 text-center">
+  <p className="text-xs text-gray-400 italic">
+    Your data is encrypted and securely stored.
+    SpendWise never sells your personal information.
+  </p>
+</div>
 
           </div>
         </div>
