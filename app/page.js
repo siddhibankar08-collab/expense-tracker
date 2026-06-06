@@ -3,162 +3,170 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="bg-[#D8EBFA] min-h-screen font-sans antialiased">
+    <div className="bg-[#0A0A0C] min-h-screen font-sans antialiased text-neutral-100">
       
-      {/* Optimized Slim Navigation Bar */}
-      <header className="relative bg-gradient-to-r from-[#09264F] via-[#0C336A] to-[#09264F] w-full h-27 px-6 md:px-12 py-3 flex items-center justify-between shadow-2xl border-b border-white/10">
-        
-        {/* Subtle top ambient glow effect */}
-        <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-blue-400/50 to-transparent"></div>
-        
-        {/* Left Side Brand Layout */}
-        <div className="flex items-center gap-4 relative z-10">
-          {/* Logo Container */}
-          <div className="relative p-1.5 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-xl border border-white/20 shadow-inner group transition-all duration-300 hover:border-blue-400/50">
-            <div className="absolute inset-0 bg-blue-500/20 rounded-xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <Image
-              src="/images/spendwiselogo.png"
-              alt="SpendWise Logo"
-              width={60}
-              height={60}
-              className="object-contain relative z-10 transform group-hover:scale-105 transition-transform duration-300"
-            />
-          </div>
+      {/* Upper Layout Wrapper with subtle Greyish Tint */}
+      <div className="bg-[#171717] relative overflow-hidden pb-16">
+        {/* Ambient radial lighting effect */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-white/[0.02] rounded-full blur-3xl pointer-events-none" />
+
+        {/* Premium Navigation Bar */}
+<header className="relative bg-[#171717] w-full h-24 px-6 md:px-12 py-3 flex items-center justify-between shadow-xl border-b border-neutral-900 backdrop-blur-md">          <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent" />
           
-          {/* Typography block */}
-          <div className="flex flex-col justify-center">
-            <h1 className="text-white text-xl md:text-3xl font-black tracking-tight leading-none flex items-center gap-1.5">
-              Spend<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-white">Wise</span>
-            </h1>
-            <div className="flex items-center gap-1.5 mt-1">
-              <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse"></span>
-              <p className="text-blue-200/70 text-[10px] font-semibold tracking-widest uppercase">
-                Track Smarter • Spend Better
-              </p>
+          {/* Left Side Brand Layout */}
+          <div className="flex items-center gap-4 relative z-10">
+            {/* Logo Container in Green */}
+            <div className="relative p-1.5 bg-emerald-500/5 backdrop-blur-sm rounded-xl border border-emerald-500/20 shadow-md group transition-all duration-300 hover:border-emerald-400">
+              <div className="absolute inset-0 bg-emerald-500/5 rounded-xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <Image
+                src="/images/spendwiselogo.png"
+                alt="SpendWise Logo"
+                width={50}
+                height={50}
+                className="object-contain relative z-10 transform group-hover:scale-105 transition-transform duration-300 invert sepia-emerald hue-rotate-60 brightness-125"
+              />
+            </div>
+            
+            {/* Typography block in Green */}
+            <div className="flex flex-col justify-center">
+              <h1 className="text-emerald-400 text-xl md:text-2xl font-black tracking-tight leading-none">
+                Spend<span className="text-white">Wise</span>
+              </h1>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse"></span>
+                <p className="text-neutral-500 text-[9px] font-bold tracking-widest uppercase">
+                  Track Smarter • Spend Better
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Right Side Navigation Actions */}
-        {/* Add items here if needed */}
-        
-      </header>
+          {/* Right Side Action */}
+          <div className="relative z-10">
+            <Link href="/login">
+              <button className="text-xs font-semibold text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl border border-neutral-800 transition-all duration-200 active:scale-95">
+                Login
+              </button>
+            </Link>
+          </div>
+        </header>
 
-      {/* Hero Section */}
-<main className="flex flex-col items-center mt-10 px- py-6 md:py-2 shrink-0">        <div className="bg-[#A2D5FB] px-8 py-2 rounded-[20px] shadow-sm">
-          <p className="text-lg font-medium text-[#0C336A]">
-            Personal. Multishop. Simple.
+        {/* Hero Section */}
+        <main className="flex flex-col items-center mt-16 md:mt-24 px-6 shrink-0 relative z-10">
+          <div className="bg-[#222226] border border-neutral-700/50 px-6 py-1.5 rounded-full shadow-inner">
+            <p className="text-xs md:text-sm font-medium text-neutral-300 tracking-wide">
+              Personal. Multishop. Simple.
+            </p>
+          </div>
+
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-black mt-8 text-center text-white tracking-tight leading-tight max-w-4xl">
+            Track every dollar across your
+          </h1>
+
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-neutral-500 mt-2 text-center tracking-tight leading-tight">
+            Life and Shops.
+          </h1>
+
+          <p className="text-center text-sm md:text-base mt-6 font-medium max-w-xl text-neutral-400 leading-relaxed">
+            Clean dashboards for your personal expenses and as many shops as
+            you run. No configuration setup needed — just pure clarity.
           </p>
-        </div>
 
-        <h1 className="text-2xl md:text-5xl lg:text-6xl font-extrabold mt-8 text-center text-slate-900 leading-tight">
-          Track every dollar across your
-        </h1>
+          <Link href="/login">
+            <button className="mt-8 bg-white text-black px-8 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg hover:bg-neutral-200 transition-all duration-300 hover:scale-105 transform active:scale-95 shadow-white/5">
+              Get Started →
+            </button>
+          </Link>
+        </main>
+      </div>
 
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#052E67] mt-1 text-center leading-tight">
-          Life and Shops.
-        </h1>
-
-        <p className="text-center text-base md:text-xl mt-8 font-light max-w-2xl text-slate-800 leading-relaxed">
-          Clean dashboards for your personal expenses and as many shops as
-          <br className="hidden md:block" /> you run. No setup, no clutter — just clarity.
-        </p>
-
-        <Link href="/login">
-          <button className="mt-8 bg-[#0C336A] text-white px-10 py-4 rounded-xl font-bold shadow-lg hover:bg-[#052E67] transition-all duration-300 hover:scale-105 transform active:scale-95">
-            Get Started →
-          </button>
-        </Link>
-
-      </main>
-
-      {/* White Section */}
-      <div className="bg-white mt-15 rounded-t-3xl">
-
-        <hr className="border-gray-200" />
+      {/* Deep Black Features Section (Separated by clean horizontal break line) */}
+      <div className="bg-[#0A0A0C] relative z-10">
+        <div className="absolute inset-x-0 top-0 h-px bg-neutral-800" />
 
         <div className="max-w-7xl mx-auto px-6 md:px-12 py-20">
 
           {/* Section Heading */}
-          <h2 className="text-3xl md:text-4xl font-bold text-center text-[#0C336A] mb-14 tracking-tight">
+          <h2 className="text-2xl md:text-3xl font-black text-center text-white mb-16 tracking-tight">
             Why Choose SpendWise?
           </h2>
 
-          {/* Feature Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Feature Cards Grid (All Unified to Lift & Border Shift Hover Animation) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
             {/* Card 1 */}
-            <div className="group bg-white border border-gray-200 rounded-2xl p-8 shadow-md hover:bg-[#0C336A] hover:shadow-2xl transition-all duration-300 cursor-pointer hover:-translate-y-1">
-              <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">💰</div>
-              <h3 className="text-2xl font-bold text-[#0C336A] group-hover:text-white mb-4 transition-colors">
+            <div className="group bg-[#121214] border border-neutral-800/80 rounded-2xl p-8 shadow-sm hover:border-neutral-400 hover:-translate-y-2 transition-all duration-300 ease-out cursor-pointer">
+              <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-2xl mb-6 group-hover:bg-white group-hover:text-black transition-colors duration-300">
+                💰
+              </div>
+              <h3 className="text-lg font-bold text-white mb-3 tracking-tight group-hover:text-neutral-200">
                 Personal Expense Tracking
               </h3>
-              <p className="text-gray-600 group-hover:text-blue-100 leading-relaxed transition-colors">
-                Record daily income and expenses effortlessly and understand where your money goes.
+              <p className="text-neutral-400 text-xs leading-relaxed">
+                Record daily income and expenses effortlessly. Understand precisely where your capital goes with visual breakdowns.
               </p>
             </div>
 
             {/* Card 2 */}
-            <div className="group bg-white border border-gray-200 rounded-2xl p-8 shadow-md hover:bg-[#0C336A] hover:shadow-2xl transition-all duration-300 cursor-pointer hover:-translate-y-1">
-              <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">🏪</div>
-              <h3 className="text-2xl font-bold text-[#0C336A] group-hover:text-white mb-4 transition-colors">
+            <div className="group bg-[#121214] border border-neutral-800/80 rounded-2xl p-8 shadow-sm hover:border-neutral-400 hover:-translate-y-2 transition-all duration-300 ease-out cursor-pointer">
+              <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-2xl mb-6 group-hover:bg-white group-hover:text-black transition-colors duration-300">
+                🏪
+              </div>
+              <h3 className="text-lg font-bold text-white mb-3 tracking-tight group-hover:text-neutral-200">
                 Multi-Shop Management
               </h3>
-              <p className="text-gray-600 group-hover:text-blue-100 leading-relaxed transition-colors">
-                Manage multiple shops separately while keeping everything organized in one place.
+              <p className="text-neutral-400 text-xs leading-relaxed">
+                Manage multiple sub-outlets and business setups autonomously while keeping metrics centralized under one secure anchor.
               </p>
             </div>
 
             {/* Card 3 */}
-            <div className="group bg-white border border-gray-200 rounded-2xl p-8 shadow-md hover:bg-[#0C336A] hover:shadow-2xl transition-all duration-300 cursor-pointer hover:-translate-y-1">
-              <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">📊</div>
-              <h3 className="text-2xl font-bold text-[#0C336A] group-hover:text-white mb-4 transition-colors">
+            <div className="group bg-[#121214] border border-neutral-800/80 rounded-2xl p-8 shadow-sm hover:border-neutral-400 hover:-translate-y-2 transition-all duration-300 ease-out cursor-pointer">
+              <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-2xl mb-6 group-hover:bg-white group-hover:text-black transition-colors duration-300">
+                📊
+              </div>
+              <h3 className="text-lg font-bold text-white mb-3 tracking-tight group-hover:text-neutral-200">
                 Reports & Insights
               </h3>
-              <p className="text-gray-600 group-hover:text-blue-100 leading-relaxed transition-colors">
-                View spending trends and financial summaries to make smarter decisions.
+              <p className="text-neutral-400 text-xs leading-relaxed">
+                Review automated category net flows and cross-platform performance comparisons mirroring your transaction images.
               </p>
             </div>
 
           </div>
 
-          {/* Privacy Card */}
-          <div className="mt-20 flex justify-center">
-            <div className="bg-[#0C336A] text-white rounded-3xl p-10 md:p-14 max-w-4xl w-full shadow-xl text-center">
+          {/* Privacy Box */}
+          <div className="mt-24 flex justify-center">
+            <div className="bg-gradient-to-br from-[#1C1C1E] via-[#121214] to-[#0A0A0C] border border-neutral-800 rounded-3xl p-8 md:p-12 max-w-4xl w-full shadow-2xl text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#ffffff02_0%,transparent_70%)] pointer-events-none" />
 
-              {/* Lock Icon */}
-              <div className="flex justify-center mb-6">
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white/15 text-3xl">
+              <div className="flex justify-center mb-5">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 text-xl border border-white/10 shadow-inner">
                   🔒
                 </div>
               </div>
 
-              {/* Heading */}
-              <h3 className="text-3xl md:text-4xl font-bold mb-3">
+              <h3 className="text-xl md:text-2xl font-bold mb-2 text-white tracking-tight">
                 Privacy First
               </h3>
-
-              {/* Subtitle */}
-              <p className="text-blue-200 text-sm uppercase tracking-wider mb-6">
+              <p className="text-neutral-500 text-[10px] font-bold uppercase tracking-wider mb-5">
                 Secure by Design
               </p>
 
-              {/* Description */}
-              <p className="text-base md:text-lg text-blue-100 max-w-2xl mx-auto leading-relaxed">
-                Your personal and shop expense data remains private, protected, and accessible only to you.
+              <p className="text-xs md:text-sm text-neutral-400 max-w-2xl mx-auto leading-relaxed">
+                Your personal balances, expense distribution logs, and retail store matrices remain isolated, securely encrypted, and exclusively accessible by your verified credentials.
               </p>
-
             </div>
           </div>
 
         </div>
 
         {/* Footer */}
-        <footer className="border-t border-gray-200 py-8 text-center text-gray-500 text-sm">
+        <footer className="border-t border-neutral-900 py-8 text-center text-neutral-600 text-xs font-medium tracking-wide">
           © 2026 SpendWise. Built simply.
         </footer>
-
       </div>
+
     </div>
   );
 }
