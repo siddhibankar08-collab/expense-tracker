@@ -84,19 +84,77 @@ export default function SignUpPage() {
       {/* SINGLE CORE CARD CONTAINER */}
       <div className="w-full max-w-6xl h-[90vh] bg-[#030303] rounded-[32px] border border-neutral-800/60 shadow-2xl overflow-hidden flex relative">
         
-        {/* LEFT SIDE: Holds the full-bleed green illustration */}
-        <div className="flex-1 h-full bg-[#030303] relative overflow-hidden border-r border-neutral-900 flex items-center justify-center">
-          <Image
-            src="/images/login-illustration.png"
-            alt="Financial Illustration"
-            fill
-            priority
-            sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-cover"
-          />
+        {/* LEFT SIDE: Subtle Muted Charcoal-Emerald Gradient Layout */}
+        <div className="flex-1 h-full bg-gradient-to-br from-[#111113] via-[#141816] to-[#0A0A0C] p-12 flex flex-col justify-between relative overflow-hidden border-r border-neutral-900">
+          {/* Subdued ambient background glow */}
+          <div className="absolute -bottom-20 -left-20 w-[500px] h-[500px] bg-emerald-500/[0.02] rounded-full blur-3xl pointer-events-none" />
+          
+          {/* RESTORED: Original SpendWise Branding and Image filters */}
+          <div className="flex items-center gap-5 relative z-10 shrink-0">
+            <div className="p-2 bg-emerald-500/5 backdrop-blur-sm rounded-2xl border border-emerald-500/20 shadow-md">
+              <Image
+                src="/images/login-illustration.png"
+                alt="Login illustrations"
+                width={70}
+                height={70  }
+                className="object-contain invert sepia-emerald hue-rotate-60 brightness-125"
+              />
+            </div>
+            <div>
+              <h1 className="text-400 text-[#10B24D] text-3xl font-black tracking-tight leading-none">
+                Spend<span className="text-[#10B24D]">Wise</span>
+              </h1>
+              <p className="text-neutral-500 text-[10px] font-bold tracking-widest uppercase mt-1.5">
+                Track Smarter • Spend Better
+              </p>
+            </div>
+          </div>
+
+          {/* Hero Content & Big Feature Cards */}
+          <div className="my-auto max-w-xl relative z-10 space-y-6">
+            <div>
+              <h2 className="text-white text-4xl font-black leading-tight tracking-tight">
+                Money clarity <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-neutral-200 to-neutral-500">
+                  for life and business.
+                </span>
+              </h2>
+              <p className="text-neutral-400 text-sm mt-3 leading-relaxed font-medium">
+                Manage personal finances and business expenses from one powerful dashboard.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-5 max-w-[560px]">
+              {[
+                { icon: "💳", title: "Expense Tracking", desc: "Monitor every single incoming and outgoing ledger item transparently." },
+                { icon: "🏪", title: "Business Insights", desc: "Understand distinct corporate multi-outlet growth trajectories effortlessly." },
+                { icon: "📈", title: "Smart Reports", desc: "Generate breakdown summaries without configuration bottlenecks." },
+                { icon: "📊", title: "Secure Data", desc: "All system coordinates remain isolated under production-tier encryption." }
+              ].map((item, index) => (
+                <div 
+                  key={index} 
+                  className="bg-[#121214]/30 backdrop-blur-sm border border-neutral-800/60 rounded-2xl p-5 transition-all duration-300 hover:border-neutral-700 hover:-translate-y-1 group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-lg group-hover:bg-white group-hover:text-black transition-colors">
+                    {item.icon}
+                  </div>
+                  <h3 className="text-white text-sm font-bold mt-4 tracking-tight">
+                    {item.title}
+                  </h3>
+                  <p className="text-neutral-400 text-xs mt-1.5 leading-relaxed">
+                    {item.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <p className="text-[11px] text-neutral-600 font-medium relative z-10 shrink-0">
+            © 2026 SpendWise. Secure Analytics Engine Active.
+          </p>
         </div>
 
-        {/* RIGHT SIDE: Form Panel */}
+        {/* RIGHT SIDE: Static Dark Pitch Black Form Panel */}
         <div className="w-[480px] h-full bg-[#030303] p-10 flex flex-col justify-center shrink-0 relative z-20 overflow-hidden">
           <div className="w-full space-y-5 my-auto">
             
@@ -130,7 +188,7 @@ export default function SignUpPage() {
                   Email Address
                 </label>
                 <input
-                  type="text"
+                  type="email"
                   placeholder="john@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
