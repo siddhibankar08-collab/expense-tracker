@@ -24,9 +24,18 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
 
+  // Core personal finance settings
   const [name, setName] = useState("");
-  const [budget, setBudget] = useState("50000");
-  const [goal, setGoal] = useState("100000");
+  const [threshold, setThreshold] = useState("5000");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  // Email notification toggles state for personal tracking
+  const [monthlySummary, setMonthlySummary] = useState(true);
+  const [expenseThresholdAlert, setExpenseThresholdAlert] = useState(true);
+  const [dailyReport, setDailyReport] = useState(false);
+  const [weeklyReport, setWeeklyReport] = useState(true);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -45,36 +54,65 @@ export default function SettingsPage() {
 
       setUser(profile);
       setName(profile?.name || "");
+      
+      if (profile?.notification_preferences) {
+        setMonthlySummary(profile.notification_preferences.monthlySummary ?? true);
+        setExpenseThresholdAlert(profile.notification_preferences.expenseThresholdAlert ?? true);
+        setDailyReport(profile.notification_preferences.dailyReport ?? false);
+        setWeeklyReport(profile.notification_preferences.weeklyReport ?? true);
+        setThreshold(profile.notification_preferences.threshold ?? "5000");
+      }
+      
       setLoading(false);
     };
 
     loadUser();
   }, [router]);
 
-  const saveProfile = async () => {
-    await supabase
-      .from("users")
-      .update({ name })
-      .eq("user_id", user.user_id);
+  const saveAllPreferences = async () => {
+    try {
+      const { error } = await supabase
+        .from("users")
+        .update({ 
+          name,
+          notification_preferences: {
+            monthlySummary,
+            expenseThresholdAlert,
+            dailyReport,
+            weeklyReport,
+            threshold
+          }
+        })
+        .eq("user_id", user.user_id);
 
-    alert("Profile Updated");
-  };
-
-  const logout = async () => {
-    await supabase.auth.signOut();
-    router.push("/login");
+      if (error) throw error;
+      alert("Preferences successfully updated!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save configuration settings.");
+    }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-4 border-neutral-200 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-neutral-400">Loading preferences...</p>
         </div>
       </div>
     );
   }
+
+  const getInitials = (fullName) => {
+    if (!fullName) return "AK";
+    return fullName
+      .split(" ")
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+  };
 
   return (
     <div className="min-h-screen bg-[#0A0A0C] text-white flex">
@@ -103,7 +141,6 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Navigation Sidebar Synced with Application State Paths */}
         <nav className="flex-1 px-4 py-6 space-y-1.5">
           {[
             { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -133,145 +170,220 @@ export default function SettingsPage() {
           <p className="text-neutral-400 text-xs uppercase tracking-wider">
             Preferences
           </p>
-
           <h1 className="text-4xl font-black mt-2 tracking-tight">
             Settings
           </h1>
         </div>
 
         <div className="space-y-6">
-          {/* PROFILE */}
+          {/* PROFILE INFORMATION CARD */}
           <div className="bg-[#121214] rounded-2xl border border-neutral-800 p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <User size={18} className="text-neutral-400" />
-              <h2 className="font-bold text-white">
-                Profile Information
-              </h2>
+            <div className="mb-2">
+              <h2 className="font-bold text-white text-lg">Profile Information</h2>
+              <p className="text-neutral-400 text-xs mt-0.5">Update your personal details</p>
             </div>
 
-            <div className="space-y-4">
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Name"
-                className="w-full bg-[#1C1C1E] border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-neutral-700 text-neutral-200"
-              />
-
-              <input
-                value={user?.email || ""}
-                disabled
-                className="w-full bg-[#1C1C1E] border border-neutral-800 rounded-xl px-4 py-3 text-sm text-neutral-500 cursor-not-allowed"
-              />
-            </div>
-          </div>
-
-          {/* FINANCIAL */}
-          <div className="bg-[#121214] rounded-2xl border border-neutral-800 p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <Wallet size={18} className="text-neutral-400" />
-              <h2 className="font-bold text-white">
-                Financial Preferences
-              </h2>
+            <div className="flex items-center gap-4 my-6">
+              <div className="h-16 w-16 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shrink-0">
+                <span className="text-[#04d292] font-bold text-xl tracking-wide">
+                  {getInitials(name || user?.email)}
+                </span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-white text-base">{name || "User Account"}</h3>
+                <button type="button" className="text-neutral-400 text-xs hover:text-[#04d292] transition-colors mt-0.5">
+                  Click avatar to upload a new photo
+                </button>
+              </div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
-              <input
-                value={budget}
-                onChange={(e) => setBudget(e.target.value)}
-                placeholder="Monthly Budget"
-                className="bg-[#1C1C1E] border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-neutral-700 text-neutral-200"
-              />
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-neutral-300">Full Name</label>
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Name"
+                  className="w-full bg-[#1C1C1E] border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-neutral-700 text-neutral-200"
+                />
+              </div>
 
-              <input
-                value={goal}
-                onChange={(e) => setGoal(e.target.value)}
-                placeholder="Savings Goal"
-                className="bg-[#1C1C1E] border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-neutral-700 text-neutral-200"
-              />
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-neutral-400">Email</label>
+                <input
+                  value={user?.email || ""}
+                  disabled
+                  className="w-full bg-[#1C1C1E] border border-neutral-800 rounded-xl px-4 py-3 text-sm text-neutral-500 cursor-not-allowed"
+                />
+              </div>
             </div>
+
+            {/* Button changed to solid white */}
+            <button
+              onClick={saveAllPreferences}
+              className="mt-6 flex items-center gap-2 px-5 py-2.5 bg-white text-black hover:bg-neutral-200 transition-all rounded-xl font-semibold text-sm active:scale-95 shadow-md shadow-black/10"
+            >
+              Save Changes
+            </button>
           </div>
 
-          {/* NOTIFICATIONS */}
+          {/* EMAIL NOTIFICATIONS CARD */}
           <div className="bg-[#121214] rounded-2xl border border-neutral-800 p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <Bell size={18} className="text-neutral-400" />
-              <h2 className="font-bold text-white">
-                Notifications
-              </h2>
+            <div className="mb-6">
+              <h2 className="font-bold text-white text-lg">Email Notifications</h2>
+              <p className="text-neutral-400 text-xs mt-0.5">Choose what alerts you receive</p>
+            </div>
+
+            <div className="divide-y divide-neutral-800 space-y-5">
+              {/* Toggle 1 */}
+              <div className="flex justify-between items-start pt-1">
+                <div className="pr-4">
+                  <h4 className="text-sm font-medium text-neutral-200">Send monthly summary email</h4>
+                  <p className="text-neutral-400 text-xs mt-0.5">Receive a monthly breakdown of income versus spending</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMonthlySummary(!monthlySummary)}
+                  className={`w-11 h-6 shrink-0 rounded-full transition-colors relative duration-200 focus:outline-none ${
+                    monthlySummary ? "bg-[#04d292]" : "bg-neutral-800"
+                  }`}
+                >
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 ${monthlySummary ? "translate-x-5" : "translate-x-0"}`} />
+                </button>
+              </div>
+
+              {/* Toggle 2 */}
+              <div className="space-y-4 pt-5">
+                <div className="flex justify-between items-start">
+                  <div className="pr-4">
+                    <h4 className="text-sm font-medium text-neutral-200">Alert when a single expense exceeds threshold</h4>
+                    <p className="text-neutral-400 text-xs mt-0.5">Get notified instantly when any logged transaction crosses your set limit</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setExpenseThresholdAlert(!expenseThresholdAlert)}
+                    className={`w-11 h-6 shrink-0 rounded-full transition-colors relative duration-200 focus:outline-none ${
+                      expenseThresholdAlert ? "bg-[#04d292]" : "bg-neutral-800"
+                    }`}
+                  >
+                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 ${expenseThresholdAlert ? "translate-x-5" : "translate-x-0"}`} />
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3 pl-0">
+                  <span className="text-xs text-neutral-300 font-medium">Threshold (₹)</span>
+                  <input
+                    type="number"
+                    value={threshold}
+                    onChange={(e) => setThreshold(e.target.value)}
+                    className="w-28 bg-[#1C1C1E] border border-neutral-800 rounded-xl px-3 py-1.5 text-xs text-neutral-200 focus:outline-none focus:border-neutral-700"
+                  />
+                </div>
+              </div>
+
+              {/* Toggle 3 */}
+              <div className="flex justify-between items-start pt-5">
+                <div className="pr-4">
+                  <h4 className="text-sm font-medium text-neutral-200">Receive daily report email</h4>
+                  <p className="text-neutral-400 text-xs mt-0.5">Daily personal transaction and budget track summary</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDailyReport(!dailyReport)}
+                  className={`w-11 h-6 shrink-0 rounded-full transition-colors relative duration-200 focus:outline-none ${
+                    dailyReport ? "bg-[#04d292]" : "bg-neutral-800"
+                  }`}
+                >
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 ${dailyReport ? "translate-x-5" : "translate-x-0"}`} />
+                </button>
+              </div>
+
+              {/* Toggle 4 */}
+              <div className="flex justify-between items-start pt-5">
+                <div className="pr-4">
+                  <h4 className="text-sm font-medium text-neutral-200">Receive weekly report email</h4>
+                  <p className="text-neutral-400 text-xs mt-0.5">Weekly personal cashflow metrics and savings progress</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setWeeklyReport(!weeklyReport)}
+                  className={`w-11 h-6 shrink-0 rounded-full transition-colors relative duration-200 focus:outline-none ${
+                    weeklyReport ? "bg-[#04d292]" : "bg-neutral-800"
+                  }`}
+                >
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 ${weeklyReport ? "translate-x-5" : "translate-x-0"}`} />
+                </button>
+              </div>
+            </div>
+
+            {/* Button changed to solid white */}
+            <button 
+              onClick={saveAllPreferences}
+              className="mt-6 flex items-center gap-2 px-5 py-2.5 bg-white text-black hover:bg-neutral-200 transition-all rounded-xl font-semibold text-sm active:scale-95 shadow-md shadow-black/10"
+            >
+              Save Preferences
+            </button>
+          </div>
+
+          {/* CHANGE PASSWORD CARD */}
+          <div className="bg-[#121214] rounded-2xl border border-neutral-800 p-6">
+            <div className="mb-6">
+              <h2 className="font-bold text-white text-lg">Change Password</h2>
+              <p className="text-neutral-400 text-xs mt-0.5">Update your security credentials</p>
             </div>
 
             <div className="space-y-4">
-              {[
-                "Transaction Alerts",
-                "Weekly Reports",
-                "Due Reminders",
-              ].map((item) => (
-                <div
-                  key={item}
-                  className="flex justify-between items-center text-sm text-neutral-300"
-                >
-                  <span>{item}</span>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-neutral-300">Current Password</label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-[#1C1C1E] border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-neutral-700 text-neutral-200 tracking-widest"
+                />
+              </div>
 
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-neutral-300">New Password</label>
                   <input
-                    type="checkbox"
-                    defaultChecked
-                    className="w-5 h-5 accent-[#04d292] cursor-pointer"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-[#1C1C1E] border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-neutral-700 text-neutral-200 tracking-widest"
                   />
                 </div>
-              ))}
+
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-neutral-300">Confirm Password</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-[#1C1C1E] border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-neutral-700 text-neutral-200 tracking-widest"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* SECURITY */}
-          <div className="bg-[#121214] rounded-2xl border border-neutral-800 p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <Shield size={18} className="text-neutral-400" />
-              <h2 className="font-bold text-white">
-                Security
-              </h2>
-            </div>
-
-            <button className="px-4 py-2.5 bg-[#1C1C1E] border border-neutral-800 rounded-xl hover:bg-neutral-800 transition-all text-xs font-semibold text-neutral-200">
-              Change Password
-            </button>
-          </div>
-
-          {/* ACTIONS */}
-          <div className="flex gap-4">
-            <button
-              onClick={saveProfile}
-              className="flex items-center gap-2 px-5 py-3 bg-white text-black hover:bg-neutral-100 transition-all rounded-xl font-semibold text-sm active:scale-95 shadow-md shadow-black/10"
-            >
-              <Save size={16} />
-              Save Changes
-            </button>
-
-            <button
-              onClick={logout}
-              className="flex items-center gap-2 px-5 py-3 bg-neutral-800 hover:bg-neutral-700 transition-all rounded-xl text-neutral-200 text-sm active:scale-95"
-            >
-              <LogOut size={16} />
-              Logout
+            {/* Button changed to solid white */}
+            <button className="mt-6 px-5 py-2.5 bg-white text-black hover:bg-neutral-200 transition-all text-sm font-semibold rounded-xl active:scale-95 shadow-md shadow-black/10">
+              Update Password
             </button>
           </div>
 
           {/* DANGER ZONE */}
           <div className="bg-rose-950/10 border border-rose-900/30 rounded-2xl p-6">
             <div className="flex items-center gap-3 mb-3">
-              <Trash2
-                size={18}
-                className="text-rose-400"
-              />
-              <h2 className="font-bold text-rose-400">
-                Danger Zone
-              </h2>
+              <Trash2 size={18} className="text-rose-400" />
+              <h2 className="font-bold text-rose-400">Danger Zone</h2>
             </div>
-
             <p className="text-neutral-400 text-sm mb-4 leading-relaxed">
-              Permanently remove your account and all
-              stored financial records.
+              Permanently remove your account and all stored financial records.
             </p>
-
             <button className="px-5 py-3 bg-rose-600 hover:bg-rose-700 transition-all text-sm rounded-xl font-semibold text-white active:scale-95 shadow-md shadow-rose-900/20">
               Delete Account
             </button>
