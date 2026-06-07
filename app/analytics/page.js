@@ -3,6 +3,7 @@
 import {
   LayoutDashboard,
   PieChart,
+  Settings,
   Bell,
   Search,
   TrendingUp,
@@ -15,6 +16,7 @@ import {
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 export default function AnalyticsPage() {
   const router = useRouter();
@@ -91,44 +93,50 @@ export default function AnalyticsPage() {
     <div className="min-h-screen bg-[#0A0A0C] text-neutral-100 flex">
       {/* SIDEBAR */}
       <aside className="hidden lg:flex w-64 bg-gradient-to-br from-[#1C1C1E] via-[#121214] to-[#0A0A0C] flex-col fixed h-full border-r border-neutral-800 shadow-xl z-20">
-        <div className="p-6 border-b border-neutral-800">
+        <div className="p-5 border-b border-neutral-800">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
-              <span className="text-white font-bold text-xl">
-                S
-              </span>
+            <div className="p-1.5 bg-emerald-500/5 backdrop-blur-sm rounded-xl border border-emerald-500/20 shadow-sm flex items-center justify-center shrink-0">
+              <Image
+                src="/images/spendwiselogo.png"
+                alt="SpendWise Logo"
+                width={36}
+                height={36}
+                className="object-contain invert sepia-emerald hue-rotate-60 brightness-125"
+              />
             </div>
 
             <div>
-              <h1 className="font-bold text-xl text-[#04d292]">
+              <h1 className="font-bold text-lg text-[#04d292] tracking-tight leading-tight">
                 SpendWise
               </h1>
-              <p className="text-[11px] text-neutral-400 uppercase tracking-wider">
+              <p className="text-[10px] font-semibold text-neutral-500 tracking-wider uppercase">
                 Personal Finance
               </p>
             </div>
           </div>
         </div>
 
+        {/* Updated Navigation Syncing All Three App Paths */}
         <nav className="flex-1 px-4 py-6 space-y-1.5">
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5"
-          >
-            <LayoutDashboard size={18} />
-            <span className="text-sm">
-              Dashboard
-            </span>
-          </button>
-
-          <button className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl bg-white text-black font-semibold">
-            <PieChart size={18} />
-            <span className="text-sm">
-              Analytics
-            </span>
-
-            <div className="ml-auto w-1.5 h-1.5 bg-black rounded-full" />
-          </button>
+          {[
+            { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+            { icon: PieChart, label: "Analytics", path: "/analytics", active: true },
+            { icon: Settings, label: "Settings", path: "/settings" },
+          ].map((item, idx) => (
+            <button
+              key={idx}
+              onClick={() => router.push(item.path)}
+              className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl transition-all duration-200 group relative ${
+                item.active
+                  ? "bg-white text-black font-semibold shadow-lg shadow-black/20"
+                  : "text-neutral-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <item.icon size={18} className={item.active ? "text-black" : "text-neutral-400 group-hover:text-white transition-colors"} />
+              <span className="text-sm">{item.label}</span>
+              {item.active && <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-black" />}
+            </button>
+          ))}
         </nav>
       </aside>
 
