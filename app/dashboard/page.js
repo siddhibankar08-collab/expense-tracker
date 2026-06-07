@@ -27,45 +27,55 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [transactionType, setTransactionType] = useState("Expense");
+  const [amount, setAmount] = useState("");
+  const [date, setDate] = useState("");
+  const [notes, setNotes] = useState("");
+  const [loadingTx, setLoadingTx] = useState(false);
+  const [txError, setTxError] = useState("");
+  const [availableBalance, setAvailableBalance] = useState(0);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      setLoading(true);
 
-      const { data: authData } = await supabase.auth.getUser();
+useEffect(() => {
+  const fetchUser = async () => {
+    setLoading(true);
 
-      if (!authData?.user) {
-        router.push("/login");
-        return;
-      }
+    const { data: authData } = await supabase.auth.getUser();
 
-      const { data: existingUser } = await supabase
-        .from("users")
-        .select("*")
-        .eq("user_id", authData.user.id)
-        .maybeSingle();
+    if (!authData?.user) {
+      router.push("/login");
+      return;
+    }
 
-      if (!existingUser) {
-        await supabase.from("users").insert({
-          user_id: authData.user.id,
-          name: authData.user.email.split("@")[0],
-          email: authData.user.email,
-          user_type: "user",
-        });
-      }
+    const { data: existingUser } = await supabase
+      .from("users")
+      .select("*")
+      .eq("user_id", authData.user.id)
+      .maybeSingle();
 
-      const { data: finalUser } = await supabase
-        .from("users")
-        .select("*")
-        .eq("user_id", authData.user.id)
-        .single();
+    // If you also keep user state:
+    setUser(existingUser);
+    
+    // NEW: fetch latest balance for this user
+    const { data: latestExpense, error: balanceError } = await supabase
+      .from("expense")
+      .select("balance")
+      .eq("user_id", authData.user.id)  // filter to this user
+      .order("id", { ascending: false }) // newest row first
+      .limit(1)
+      .single();
 
-      setUser(finalUser);
-      setLoading(false);
-    };
+    if (!balanceError && latestExpense) {
+      setAvailableBalance(latestExpense.balance);
+    } else {
+      // If no rows yet, keep it at 0
+      setAvailableBalance(0);
+    }
 
-    fetchUser();
-  }, [router]);
+    setLoading(false);
+  };
+
+  fetchUser();
+}, [router]);
 
   const transactions = [
     { name: "Netflix Subscription", date: "Today", amount: "-₹499", type: "expense" },
@@ -76,17 +86,97 @@ export default function Dashboard() {
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good Morning" : hour < 18 ? "Good Afternoon" : "Good Evening";
+  
+    async function handleTransactionSubmit(e) {
+    e.preventDefault();
+    setTxError("");
+    setLoadingTx(true);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0C]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-4 border-neutral-200 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm font-medium text-neutral-400">Loading your workspace...</p>
-        </div>
-      </div>
-    );
+    // 1) Get logged-in user
+    const {
+      data: { user: authUser },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !authUser) {
+      setTxError("You must be logged in to add a transaction.");
+      setLoadingTx(false);
+      return;
+    }
+
+    // 2) For now, use the hard-coded available balance as current balance (52300).
+    // Later you will compute this from the DB.
+    const currentBalance = availableBalance;
+
+    if (!amount || Number(amount) <= 0) {
+      setTxError("Amount must be a positive number.");
+      setLoadingTx(false);
+      return;
+    }
+
+    if (!date) {
+      setTxError("Please select a date.");
+      setLoadingTx(false);
+      return;
+    }
+
+    // 3) Map "Income"/"Expense" to transactionType string
+    const txType =
+      transactionType === "Income" || transactionType === "income"
+        ? "income"
+        : "expense";
+
+    // 4) Build payload for addTransaction
+      const payload = {
+        user_id: authUser.id,          // back in
+        amount: Number(amount),
+        transactionType: txType,       // "income" or "expense"
+        currentBalance,
+        date,                          // "YYYY-MM-DD"
+        description: notes || null,
+        due_amount: null,
+      };
+
+try {
+  const res = await fetch("/api/expense/add", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Failed to add transaction");
   }
+
+  // 1) Read the created transaction row from the API
+  const transaction = await res.json();
+
+  // 2) Update the available balance in state using the new balance
+  setAvailableBalance(transaction.balance);
+
+  // 3) Clear form & close modal
+  setAmount("");
+  setDate("");
+  setNotes("");
+  setShowTransactionModal(false);
+} catch (err) {
+  console.error("Add transaction error:", err);
+  setTxError(err.message);
+} finally {
+  setLoadingTx(false);
+}
+  }
+    if (loading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-[#0A0A0C]">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-4 border-neutral-200 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-sm font-medium text-neutral-400">Loading your workspace...</p>
+          </div>
+        </div>
+      );
+    }
 
   return (
     <div className="min-h-screen bg-[#0A0A0C] text-neutral-100 font-sans antialiased flex">
@@ -170,7 +260,7 @@ export default function Dashboard() {
           <div className="relative overflow-hidden bg-gradient-to-br from-[#1C1C1E] via-[#121214] to-[#0A0A0C] rounded-2xl p-8 shadow-xl border border-neutral-800 text-white">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,#ffffff05_0%,transparent_60%)] pointer-events-none" />
             <p className="text-neutral-400 text-xs font-medium tracking-wider uppercase mb-1.5">Available Balance</p>
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-2">₹52,300</h2>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-2">₹{availableBalance}</h2>
             <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-medium mb-6 bg-emerald-500/10 w-fit px-2.5 py-1 rounded-full border border-emerald-500/20">
               <TrendingUp size={14} />
               <span>+12.4% from last month</span>
@@ -282,7 +372,7 @@ export default function Dashboard() {
               </button>
             </div>
 
-            <form className="p-6 space-y-4" onSubmit={(e) => e.preventDefault()}>
+            <form className="p-6 space-y-4" onSubmit={handleTransactionSubmit}>
               {/* Type Dropdown Box */}
               <div>
                 <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
@@ -309,10 +399,14 @@ export default function Dashboard() {
                   Amount (INR)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 font-medium text-sm">₹</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 font-medium text-sm">
+                    ₹
+                  </span>
                   <input
                     type="number"
                     placeholder="0.00"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
                     className="w-full bg-[#1C1C1E] border border-neutral-800 focus:border-neutral-700 focus:bg-black focus:ring-4 focus:ring-white/5 rounded-xl pl-8 pr-4 py-2.5 text-sm font-semibold outline-none transition-all text-white placeholder-neutral-600"
                   />
                 </div>
@@ -325,6 +419,8 @@ export default function Dashboard() {
                 </label>
                 <input
                   type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
                   className="w-full bg-[#1C1C1E] border border-neutral-800 focus:border-neutral-700 focus:bg-black focus:ring-4 focus:ring-white/5 rounded-xl px-4 py-2.5 text-sm font-medium outline-none transition-all text-neutral-200"
                 />
               </div>
@@ -337,20 +433,27 @@ export default function Dashboard() {
                 <textarea
                   rows={2.5}
                   placeholder="What was this item or event for?..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
                   className="w-full bg-[#1C1C1E] border border-neutral-800 focus:border-neutral-700 focus:bg-black focus:ring-4 focus:ring-white/5 rounded-xl px-4 py-2.5 text-sm outline-none transition-all resize-none placeholder-neutral-600 text-neutral-200"
                 />
               </div>
 
+              {txError && (
+              <p className="text-xs text-red-400 font-medium">{txError}</p>
+            )}
+
               {/* Action Submit */}
               <button
                 type="submit"
+                disabled={loadingTx}
                 className={`w-full py-3 rounded-xl font-semibold text-xs uppercase tracking-wider text-white shadow-md transition-all active:scale-95 ${
                   transactionType === "Expense"
                     ? "bg-rose-600 hover:bg-rose-700 shadow-rose-950/20"
                     : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-950/20"
                 }`}
               >
-                Save {transactionType}
+                {loadingTx ? "Saving..." : `Save ${transactionType}`}
               </button>
             </form>
           </div>
