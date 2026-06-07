@@ -40,15 +40,16 @@ export default function ForgotPasswordPage() {
       return;
     }
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset_password`,
-    });
+          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/Forgot_pass/reset_pass`,
+          });
 
-    if (error) {
-      setErrorMsg(error.message);
-      return;
-    }
-
+          if (error) {
+            console.error("resetPasswordForEmail error:", error);
+            setErrorMsg(error.message);
+            return;
+          }
+          
     // 2. Trigger the success toast popup beneath the card
     setShowPopup(true);
   }

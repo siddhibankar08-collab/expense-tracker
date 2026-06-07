@@ -166,21 +166,26 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Remember Me Parameters */}
-            <div className="flex items-center justify-between pt-1">
-              <label className="flex items-center gap-2.5 cursor-pointer select-none">
-                <input 
-                  type="checkbox" 
-                  className="w-4 h-4 rounded-md bg-[#121214] border-neutral-800 text-white focus:ring-0 focus:ring-offset-0 accent-neutral-200"
-                />
-                <span className="text-sm font-medium text-neutral-400">
-                  Remember me
-                </span>
-              </label>
-              <p className="text-sm font-bold text-neutral-400 hover:text-white transition-colors cursor-pointer">
-                Forgot Password?
-              </p>
-            </div>
+                    {/* Remember Me Parameters */}
+          <div className="flex items-center justify-between pt-1">
+            <label className="flex items-center gap-2.5 cursor-pointer select-none">
+              <input 
+                type="checkbox" 
+                className="w-4 h-4 rounded-md bg-[#121214] border-neutral-800 text-white focus:ring-0 focus:ring-offset-0 accent-neutral-200"
+              />
+              <span className="text-sm font-medium text-neutral-400">
+                Remember me
+              </span>
+            </label>
+
+            <button
+              type="button"
+              onClick={() => router.push("/Forgot_pass/email")}
+              className="text-sm font-bold text-neutral-400 hover:text-white transition-colors cursor-pointer"
+            >
+              Forgot Password?
+            </button>
+          </div>
 
             {/* Login Execution CTA */}
             <button
