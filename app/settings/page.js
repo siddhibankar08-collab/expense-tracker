@@ -118,7 +118,7 @@ export default function SettingsPage() {
           {[
            { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: PieChart, label: "Analytics", path: "/analytics" },
-  { icon: Receipt, label: "Transactions", path: "/transaction" },         // Added this line
+  { icon: Receipt, label: "Transactions", path: "/transactions" },         // Added this line
   { icon: Settings, label: "Settings", path: "/settings", active: true }, // Active here
           ].map((item, idx) => (
             <button
