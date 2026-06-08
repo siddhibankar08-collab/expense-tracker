@@ -13,6 +13,8 @@ import Image from "next/image";
 
 export default function TransactionsPage() {
   const router = useRouter();
+  
+  const [user, setUser] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,28 +29,42 @@ export default function TransactionsPage() {
         return;
       }
 
-      // Fetch ONLY the expense rows belonging to this specific user
+      // 1. FETCH USER PROFILE DATA
+      const { data: userData } = await supabase
+        .from("users")
+        .select("*")
+        .eq("user_id", authData.user.id)
+        .single();
+
+      setUser(userData);
+
+      // 2. FETCH LIVE TRANSACTION ROWS FOR THIS AUTHENTICATED USER
       const { data: dbRows, error } = await supabase
         .from("expense")
-        .select("id, date, description, type, credit_amount, debit_amount")
+        .select("*")
         .eq("user_id", authData.user.id)
         .order("date", { ascending: false });
 
       if (!error && dbRows) {
-        // Map data safely to match the component's required structure
+        // Map database columns to the component structure safely
         const mappedRows = dbRows.map((row) => {
-          const isIncome = row.type === "credit" || row.type === "income";
+          // Normalize type checking to handle case variants securely
+          const normalizedType = String(row.type || "").toLowerCase();
+          const isIncome = normalizedType === "credit" || normalizedType === "income";
+          
+          // Fallback parsing logic to make sure amounts never show up as NaN
           const rawAmount = isIncome ? (row.credit_amount || 0) : (row.debit_amount || 0);
+          const currentRunningBalance = row.balance || 0;
           
           return {
-            id: row.id,
+            id: row.expense_id || row.id,
             date: row.date || "N/A",
-            // Fallback text if timestamp details are managed externally
-            time: "Logged", 
+            // We can show the running balance snapshot calculated by your submit form here
+            balanceSnapshot: `₹${Number(currentRunningBalance).toLocaleString("en-IN")}`, 
             purpose: row.description || (isIncome ? "Income Log" : "Expense Log"),
-            category: isIncome ? "Income" : "Expense",
+            category: row.category || (isIncome ? "Income" : "Expense"),
             type: isIncome ? "Income" : "Expense",
-            amount: `${isIncome ? "+" : "-"}₹${rawAmount.toLocaleString("en-IN")}`,
+            amount: `${isIncome ? "+" : "-"}₹${Number(rawAmount).toLocaleString("en-IN")}`,
           };
         });
 
@@ -66,7 +82,7 @@ export default function TransactionsPage() {
       <div className="min-h-screen flex items-center justify-center bg-[#0A0A0C]">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-4 border-neutral-200 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-neutral-400">Loading records...</p>
+          <p className="text-sm text-neutral-400">Loading ledger data...</p>
         </div>
       </div>
     );
@@ -84,7 +100,7 @@ export default function TransactionsPage() {
                 alt="SpendWise Logo"
                 width={36}
                 height={36}
-                className="object-contain invert sepia-emerald hue-rotate-60 brightness-125"
+                className="object-contain invert sepia-emerald"
               />
             </div>
             <div>
@@ -101,7 +117,7 @@ export default function TransactionsPage() {
         <nav className="flex-1 px-4 py-6 space-y-1.5">
           <button 
             onClick={() => router.push("/dashboard")} 
-            className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5 transition-all"
+            className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5 text-left transition-all"
           >
             <LayoutDashboard size={18} />
             <span className="text-sm">Dashboard</span>
@@ -109,23 +125,24 @@ export default function TransactionsPage() {
 
           <button 
             onClick={() => router.push("/analytics")} 
-            className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5 transition-all"
+            className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5 text-left transition-all"
           >
             <PieChart size={18} />
             <span className="text-sm">Analytics</span>
           </button>
 
           <button 
-            onClick={() => router.push("/transaction")} 
-            className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl bg-white text-black font-semibold shadow-lg shadow-black/20"
+            onClick={() => router.push("/transactions")} 
+            className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl bg-white text-black font-semibold shadow-lg shadow-black/20 text-left relative"
           >
-            <Receipt size={18} />
+            <Receipt size={18} className="text-black" />
             <span className="text-sm">Transactions</span>
+            <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-black" />
           </button>
 
           <button 
             onClick={() => router.push("/settings")} 
-            className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5 transition-all"
+            className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5 text-left transition-all"
           >
             <Settings size={18} />
             <span className="text-sm">Settings</span>
@@ -146,6 +163,12 @@ export default function TransactionsPage() {
                 Track all income and expenses.
               </p>
             </div>
+
+            <div className="flex items-center gap-4">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2C2C2E] to-[#121214] border border-neutral-700 flex items-center justify-center font-semibold text-white text-sm shadow-md select-none">
+                {user?.name ? user.name[0].toUpperCase() : "U"}
+              </div>
+            </div>
           </div>
         </header>
 
@@ -164,8 +187,8 @@ export default function TransactionsPage() {
                 <thead>
                   <tr className="border-b border-neutral-800 text-neutral-400 text-sm">
                     <th className="text-left px-8 py-4 w-[25%]">Date</th>
-                    <th className="text-left px-8 py-4 w-[15%]">Status</th>
-                    <th className="text-left px-8 py-4 w-[40%]">Purpose</th>
+                    <th className="text-left px-8 py-4 w-[20%]">Running Balance</th>
+                    <th className="text-left px-8 py-4 w-[35%]">Purpose</th>
                     <th className="text-right px-8 py-4 w-[20%]">Credit/Debit</th>
                   </tr>
                 </thead>
@@ -180,8 +203,8 @@ export default function TransactionsPage() {
                         {txn.date}
                       </td>
 
-                      <td className="px-8 py-5 text-neutral-500 text-sm">
-                        {txn.time}
+                      <td className="px-8 py-5 text-neutral-500 text-sm font-medium">
+                        {txn.balanceSnapshot}
                       </td>
 
                       <td className="px-8 py-5 font-bold text-white text-base">
