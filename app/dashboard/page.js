@@ -181,11 +181,11 @@ export default function Dashboard() {
         return;
       }
 
-      const txType =
-        transactionType === "Income" || transactionType === "income"
-          ? "income"
-          : "expense";
-
+      // Fix: Map the UI selections directly to what your database expects ("credit" / "debit")
+const txType =
+  transactionType === "Income" || transactionType === "income"
+    ? "income"
+    : "expense";
       const currentBalance = balance;
 
       const payload = {
@@ -473,8 +473,7 @@ export default function Dashboard() {
               ) : (
                 <div className="space-y-2.5">
                   {transactions.map((txn, idx) => {
-                    const isIncome = txn.type === "income";
-                    return (
+const isIncome = txn.type === "income";                    return (
                       <div
                         key={idx}
                         className={`flex justify-between items-center p-3.5 rounded-xl border transition-all duration-200 hover:scale-[1.005] ${
