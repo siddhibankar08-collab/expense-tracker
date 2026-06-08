@@ -1,5 +1,5 @@
 "use client";
-
+import * as XLSX from "xlsx";
 import { useRouter } from "next/navigation";
 import {
   LayoutDashboard,
@@ -82,6 +82,50 @@ export default function TransactionsPage() {
 
     fetchTransactions();
   }, [router, showAll]);
+
+  function handleExportXlsx() {
+    if (!transactions || transactions.length === 0) {
+      alert("No transactions to export yet.");
+      return;
+    }
+
+    // 1. Build data array matching your table columns
+    const data = transactions.map((tx) => ({
+      Date: tx.date || "",
+      "Running Balance": tx.balanceSnapshot || "",
+      Purpose: tx.purpose || "",
+      "Credit/Debit": tx.amount || "",
+    }));
+
+    // 2. Create worksheet and workbook
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
+
+    // 3. Generate XLSX file
+    const wbout = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    const blob = new Blob([wbout], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    // 4. Trigger download
+    const url = URL.createObjectURL(blob);
+    const timestamp = new Date().toISOString().slice(0, 10);
+    const filename = `transactions-${timestamp}.xlsx`;
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+  }
 
   if (loading) {
     return (
@@ -198,12 +242,20 @@ export default function TransactionsPage() {
         {/* CONTENT VIEW */}
         <div className="p-8 max-w-7xl w-full mx-auto space-y-6">
           {/* TABLE CONTAINER */}
-          <div className="bg-[#121214] rounded-2xl border border-neutral-800 overflow-hidden">
-            <div className="p-6 border-b border-neutral-800">
-              <h2 className="font-bold text-white text-lg">
-                All Transactions
-              </h2>
-            </div>
+          <div className="p-6 border-b border-neutral-800">
+          <div className="flex items-center justify-between">
+            <h2 className="font-bold text-white text-lg">
+              All Transactions
+            </h2>
+
+            <button
+              type="button"
+              onClick={handleExportXlsx}
+              className="text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-neutral-700 text-neutral-300 hover:text-white hover:border-neutral-500 hover:bg-neutral-800/60 transition-all"
+            >
+              Export to Excel
+            </button>
+          </div>
 
             <div className="overflow-x-auto">
               <table className="w-full table-fixed min-w-[700px]">
