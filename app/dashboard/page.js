@@ -340,22 +340,23 @@ export default function Dashboard() {
               </p>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="h-8 w-px bg-neutral-800 hidden md:block" />
-              <div className="flex items-center gap-3 pl-1">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2C2C2E] to-[#121214] border border-neutral-700 flex items-center justify-center font-semibold text-white text-sm shadow-md">
-                  {user?.name ? user.name[0].toUpperCase() : "U"}
-                </div>
-                <div className="hidden md:block text-left">
-                  <p className="text-xs font-semibold text-neutral-200 leading-tight">
-                    {user?.name || "User"}
-                  </p>
-                  <p className="text-[10px] text-neutral-500">
-                    Premium Account
-                  </p>
-                </div>
-              </div>
-            </div>
+            {/* Interactive profile badge linked to Settings */}
+<button 
+  onClick={() => router.push("/settings")}
+  className="flex items-center gap-3 pl-1 hover:opacity-85 transition-all active:scale-98 group cursor-pointer text-left"
+>
+  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2C2C2E] to-[#121214] border border-neutral-700 group-hover:border-neutral-500 transition-colors flex items-center justify-center font-semibold text-white text-sm shadow-md">
+    {user?.name ? user.name[0].toUpperCase() : "U"}
+  </div>
+  <div className="hidden md:block">
+    <p className="text-xs font-semibold text-neutral-200 leading-tight group-hover:text-white transition-colors">
+      {user?.name || "User"}
+    </p>
+    <p className="text-[10px] text-neutral-500">
+      Premium Account
+    </p>
+  </div>
+</button>
           </div>
         </header>
 

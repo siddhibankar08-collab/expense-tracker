@@ -142,41 +142,24 @@ export default function AnalyticsPage() {
 
       {/* MAIN */}
       <main className="flex-1 lg:ml-64">
-        {/* HEADER */}
-        <header className="bg-[#0A0A0C]/80 backdrop-blur-md border-b border-neutral-800 px-8 py-4 sticky top-0 z-10">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-xl font-bold text-white">
-                {greeting},{" "}
-                {user?.name ||
-                  user?.email?.split("@")[0]}{" "}
-                👋
-              </h1>
+        {/* TOP BAR */}
+<header className="bg-[#0A0A0C]/80 backdrop-blur-md border-b border-neutral-800 px-8 py-4 sticky top-0 z-10">
+  <div className="flex items-center justify-between gap-4">
+    <div>
+      {/* Big bold Analytics header text */}
+      <h1 className="text-3xl font-black text-white">
+        Analytics
+      </h1>
+      <p className="text-neutral-400 text-xs mt-0.5">
+        Deep dive into your visual spending habits and data metrics.
+      </p>
+    </div>
 
-              <p className="text-neutral-400 text-xs mt-0.5">
-                Financial analytics and insights.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center bg-[#121214] border border-neutral-800 rounded-xl px-3 py-2">
-                <Search
-                  size={16}
-                  className="text-neutral-500"
-                />
-
-                <input
-                  placeholder="Search reports..."
-                  className="bg-transparent outline-none ml-2 text-xs w-56 text-neutral-200"
-                />
-              </div>
-
-              <button className="p-2.5 bg-[#121214] border border-neutral-800 rounded-xl">
-                <Bell size={18} />
-              </button>
-            </div>
-          </div>
-        </header>
+    <div className="flex items-center gap-4">
+      {/* ... your existing right-side code (Search, Bell, Profile Icon) stays the same ... */}
+    </div>
+  </div>
+</header>
 
         <div className="p-8 max-w-7xl mx-auto space-y-6">
           {/* HERO */}
