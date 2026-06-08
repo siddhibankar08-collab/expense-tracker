@@ -136,97 +136,112 @@ export default function Dashboard() {
   }, [router]);
 
   // Submit handler for the modal form
-  //Temporary function 
-async function handleTransactionSubmit(e) {
-  e.preventDefault();
-  setTxError("");
-  setLoadingTx(true);
+  async function handleTransactionSubmit(e) {
+    e.preventDefault();
+    setTxError("");
+    setLoadingTx(true);
 
-  try {
-    // 1) Get auth user (keep your logic)
-    const {
-      data: { user: authUser },
-      error: userError,
-    } = await supabase.auth.getUser();
+    try {
+      // 1) Get auth user
+      const {
+        data: { user: authUser },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-    if (userError || !authUser) {
-      setTxError("You must be logged in to add a transaction.");
-      return;
-    }
-
-    // 2) Basic validation
-    const numericAmount = Number(amount);
-    if (!numericAmount || numericAmount <= 0) {
-      setTxError("Amount must be a positive number.");
-      return;
-    }
-
-    if (!date) {
-      setTxError("Please select a date.");
-      return;
-    }
-
-    const txType =
-      transactionType === "Income" || transactionType === "income"
-        ? "income"
-        : "expense";
-
-    const currentBalance = balance;
-
-    const payload = {
-      user_id: authUser.id,
-      amount: numericAmount,
-      transactionType: txType,
-      currentBalance,
-      date,
-      description: notes || null,
-      due_amount: null,
-    };
-
-    console.log("🔹 Sending payload to /api/expense/add:", payload);
-
-    // 3) Call API
-    const res = await fetch("/api/expense/add", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    console.log("🔹 Raw Response object:", res);
-
-    // 4) Handle non-2xx
-    if (!res.ok) {
-      let data = {};
-      try {
-        data = await res.json();
-      } catch (_) {
-        // ignore JSON parse errors
+      if (userError || !authUser) {
+        setTxError("You must be logged in to add a transaction.");
+        setLoadingTx(false);
+        return;
       }
-      console.log("🔹 Error response body:", data);
-      throw new Error(
-        data.error || `Failed to add transaction (status ${res.status})`
-      );
+
+      // 2) Basic validation
+      const numericAmount = Number(amount);
+      if (!numericAmount || numericAmount <= 0) {
+        setTxError("Amount must be a positive number.");
+        setLoadingTx(false);
+        return;
+      }
+
+      if (!date) {
+        setTxError("Please select a date.");
+        setLoadingTx(false);
+        return;
+      }
+
+      // Enforced validation rules for notes
+      if (!notes || notes.trim() === "") {
+        setTxError("Notes are required. Please describe the transaction.");
+        setLoadingTx(false);
+        return;
+      }
+
+      if (notes.length > 100) {
+        setTxError("Notes cannot exceed 100 characters.");
+        setLoadingTx(false);
+        return;
+      }
+
+      const txType =
+        transactionType === "Income" || transactionType === "income"
+          ? "income"
+          : "expense";
+
+      const currentBalance = balance;
+
+      const payload = {
+        user_id: authUser.id,
+        amount: numericAmount,
+        transactionType: txType,
+        currentBalance,
+        date,
+        description: notes.trim(),
+        due_amount: null,
+      };
+
+      console.log("🔹 Sending payload to /api/expense/add:", payload);
+
+      // 3) Call API
+      const res = await fetch("/api/expense/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      console.log("🔹 Raw Response object:", res);
+
+      // 4) Handle non-2xx
+      if (!res.ok) {
+        let data = {};
+        try {
+          data = await res.json();
+        } catch (_) {
+          // ignore JSON parse errors
+        }
+        console.log("🔹 Error response body:", data);
+        throw new Error(
+          data.error || `Failed to add transaction (status ${res.status})`
+        );
+      }
+
+      // 5) Parse JSON
+      const transaction = await res.json();
+      console.log("✅ Transaction from API:", transaction);
+
+      if (transaction.balance !== undefined) {
+        setBalance(transaction.balance);
+      }
+
+      setAmount("");
+      setDate("");
+      setNotes("");
+      setShowTransactionModal(false);
+    } catch (err) {
+      console.error("❌ Add transaction error (frontend):", err);
+      setTxError(err.message || "Network error while adding transaction");
+    } finally {
+      setLoadingTx(false);
     }
-
-    // 5) Parse JSON
-    const transaction = await res.json();
-    console.log("✅ Transaction from API:", transaction);
-
-    if (transaction.balance !== undefined) {
-      setBalance(transaction.balance);
-    }
-
-    setAmount("");
-    setDate("");
-    setNotes("");
-    setShowTransactionModal(false);
-  } catch (err) {
-    console.error("❌ Add transaction error (frontend):", err);
-    setTxError(err.message || "Network error while adding transaction");
-  } finally {
-    setLoadingTx(false);
   }
-}
 
   const hour = new Date().getHours();
   const greeting =
@@ -325,17 +340,6 @@ async function handleTransactionSubmit(e) {
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center bg-[#121214] border border-neutral-800 rounded-xl px-3.5 py-2 transition-all focus-within:border-neutral-700 focus-within:bg-black focus-within:ring-2 focus-within:ring-white/5">
-                <Search size={16} className="text-neutral-500" />
-                <input
-                  placeholder="Search transactions..."
-                  className="bg-transparent outline-none ml-2.5 text-xs w-56 text-neutral-200 placeholder-neutral-500"
-                />
-              </div>
-              <button className="p-2.5 bg-[#121214] border border-neutral-800 hover:border-neutral-700 rounded-xl text-neutral-300 relative transition-all active:scale-95">
-                <Bell size={18} />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-white rounded-full border-2 border-[#121214]" />
-              </button>
               <div className="h-8 w-px bg-neutral-800 hidden md:block" />
               <div className="flex items-center gap-3 pl-1">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2C2C2E] to-[#121214] border border-neutral-700 flex items-center justify-center font-semibold text-white text-sm shadow-md">
@@ -432,7 +436,7 @@ async function handleTransactionSubmit(e) {
                 ></div>
               </div>
               <p className="text-neutral-500 text-[11px] font-medium mt-1.5">
-                0% Savings rate achieved
+                {savingsRate}% Savings rate achieved
               </p>
             </div>
           </div>
@@ -592,14 +596,21 @@ async function handleTransactionSubmit(e) {
 
               {/* Notes */}
               <div>
-                <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
-                  Notes
-                </label>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                    Notes
+                  </label>
+                  <span className={`text-[10px] font-medium ${notes.length > 100 ? "text-rose-400" : "text-neutral-500"}`}>
+                    {notes.length}/100
+                  </span>
+                </div>
                 <textarea
                   rows={2.5}
-                  placeholder="What was this item or event for?..."
+                  placeholder="What was this item or event for? (Required)..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
+                  maxLength={100}
+                  required
                   className="w-full bg-[#1C1C1E] border border-neutral-800 rounded-xl px-4 py-2.5 text-sm outline-none resize-none text-neutral-200 placeholder-neutral-600"
                 />
               </div>
