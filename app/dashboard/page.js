@@ -81,8 +81,9 @@ export default function Dashboard() {
           "balance, credit_amount, debit_amount, type, date, description"
         )
         // you can add .eq("user_id", authData.user.id) later when RLS is stricter
-        .order("id", { ascending: false });
-
+        .order("created_at", { ascending: false });
+      console.log("expenseRows:", expenseRows);
+      console.log("expenseError:", expenseError);
       if (!expenseError && expenseRows && expenseRows.length > 0) {
         // 1) Balance = balance of the latest row
         const latest = expenseRows[0];
@@ -137,96 +138,96 @@ export default function Dashboard() {
 
   // Submit handler for the modal form
   //Temporary function 
-async function handleTransactionSubmit(e) {
-  e.preventDefault();
-  setTxError("");
-  setLoadingTx(true);
+  async function handleTransactionSubmit(e) {
+    e.preventDefault();
+    setTxError("");
+    setLoadingTx(true);
 
-  try {
-    // 1) Get auth user (keep your logic)
-    const {
-      data: { user: authUser },
-      error: userError,
-    } = await supabase.auth.getUser();
+    try {
+      // 1) Get auth user (keep your logic)
+      const {
+        data: { user: authUser },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-    if (userError || !authUser) {
-      setTxError("You must be logged in to add a transaction.");
-      return;
-    }
-
-    // 2) Basic validation
-    const numericAmount = Number(amount);
-    if (!numericAmount || numericAmount <= 0) {
-      setTxError("Amount must be a positive number.");
-      return;
-    }
-
-    if (!date) {
-      setTxError("Please select a date.");
-      return;
-    }
-
-    const txType =
-      transactionType === "Income" || transactionType === "income"
-        ? "income"
-        : "expense";
-
-    const currentBalance = balance;
-
-    const payload = {
-      user_id: authUser.id,
-      amount: numericAmount,
-      transactionType: txType,
-      currentBalance,
-      date,
-      description: notes || null,
-      due_amount: null,
-    };
-
-    console.log("🔹 Sending payload to /api/expense/add:", payload);
-
-    // 3) Call API
-    const res = await fetch("/api/expense/add", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    console.log("🔹 Raw Response object:", res);
-
-    // 4) Handle non-2xx
-    if (!res.ok) {
-      let data = {};
-      try {
-        data = await res.json();
-      } catch (_) {
-        // ignore JSON parse errors
+      if (userError || !authUser) {
+        setTxError("You must be logged in to add a transaction.");
+        return;
       }
-      console.log("🔹 Error response body:", data);
-      throw new Error(
-        data.error || `Failed to add transaction (status ${res.status})`
-      );
+
+      // 2) Basic validation
+      const numericAmount = Number(amount);
+      if (!numericAmount || numericAmount <= 0) {
+        setTxError("Amount must be a positive number.");
+        return;
+      }
+
+      if (!date) {
+        setTxError("Please select a date.");
+        return;
+      }
+
+      const txType =
+        transactionType === "Income" || transactionType === "income"
+          ? "income"
+          : "expense";
+
+      const currentBalance = balance;
+
+      const payload = {
+        user_id: authUser.id,
+        amount: numericAmount,
+        transactionType: txType,
+        currentBalance,
+        date,
+        description: notes || null,
+        due_amount: null,
+      };
+
+      console.log("🔹 Sending payload to /api/expense/add:", payload);
+
+      // 3) Call API
+      const res = await fetch("/api/expense/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      console.log("🔹 Raw Response object:", res);
+
+      // 4) Handle non-2xx
+      if (!res.ok) {
+        let data = {};
+        try {
+          data = await res.json();
+        } catch (_) {
+          // ignore JSON parse errors
+        }
+        console.log("🔹 Error response body:", data);
+        throw new Error(
+          data.error || `Failed to add transaction (status ${res.status})`
+        );
+      }
+
+      // 5) Parse JSON
+      const transaction = await res.json();
+      console.log("✅ Transaction from API:", transaction);
+
+      if (transaction.balance !== undefined) {
+        setBalance(transaction.balance);
+      }
+
+      setAmount("");
+      setDate("");
+      setNotes("");
+      setShowTransactionModal(false);
+    } catch (err) {
+      console.error("❌ Add transaction error (frontend):", err);
+      setTxError(err.message || "Network error while adding transaction");
+    } finally {
+      setLoadingTx(false);
     }
-
-    // 5) Parse JSON
-    const transaction = await res.json();
-    console.log("✅ Transaction from API:", transaction);
-
-    if (transaction.balance !== undefined) {
-      setBalance(transaction.balance);
-    }
-
-    setAmount("");
-    setDate("");
-    setNotes("");
-    setShowTransactionModal(false);
-  } catch (err) {
-    console.error("❌ Add transaction error (frontend):", err);
-    setTxError(err.message || "Network error while adding transaction");
-  } finally {
-    setLoadingTx(false);
   }
-}
 
   const hour = new Date().getHours();
   const greeting =
@@ -286,11 +287,10 @@ async function handleTransactionSubmit(e) {
             <button
               key={idx}
               onClick={() => router.push(item.path)}
-              className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl transition-all duration-200 group relative ${
-                item.active
-                  ? "bg-white text-black font-semibold shadow-lg shadow-black/20"
-                  : "text-neutral-400 hover:bg-white/5 hover:text-white"
-              }`}
+              className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl transition-all duration-200 group relative ${item.active
+                ? "bg-white text-black font-semibold shadow-lg shadow-black/20"
+                : "text-neutral-400 hover:bg-white/5 hover:text-white"
+                }`}
             >
               <item.icon
                 size={18}
@@ -384,7 +384,7 @@ async function handleTransactionSubmit(e) {
             <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800 shadow-sm relative overflow-hidden group hover:border-neutral-700 transition-all">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-neutral-400 text-xs font-medium uppercase tracking-wider">
-                  Total Income
+                  Total Expenditure
                 </p>
                 <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl">
                   <ArrowDownRight size={16} className="rotate-180" />
@@ -393,9 +393,7 @@ async function handleTransactionSubmit(e) {
               <h3 className="text-2xl font-bold text-white">
                 ₹{totalIncome.toLocaleString("en-IN")}
               </h3>
-              <p className="text-neutral-500 text-xs mt-1.5 font-medium">
-                No active metrics logs
-              </p>
+
             </div>
 
             <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800 shadow-sm relative overflow-hidden group hover:border-neutral-700 transition-all">
@@ -410,9 +408,7 @@ async function handleTransactionSubmit(e) {
               <h3 className="text-2xl font-bold text-white">
                 ₹{totalExpenses.toLocaleString("en-IN")}
               </h3>
-              <p className="text-neutral-500 text-xs mt-1.5 font-medium">
-                No active metrics logs
-              </p>
+
             </div>
 
             <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800 shadow-sm relative overflow-hidden group hover:border-neutral-700 transition-all">
@@ -424,16 +420,15 @@ async function handleTransactionSubmit(e) {
                   <Wallet size={16} />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-white">₹0</h3>
-              <div className="mt-2 w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden">
+              <h3 className="text-2xl font-bold text-white">
+                ₹{(totalIncome - totalExpenses).toLocaleString("en-IN")}
+              </h3>              <div className="mt-2 w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden">
                 <div
                   className="bg-neutral-700 h-full rounded-full"
                   style={{ width: `${savingsRate}%` }}
                 ></div>
               </div>
-              <p className="text-neutral-500 text-[11px] font-medium mt-1.5">
-                0% Savings rate achieved
-              </p>
+
             </div>
           </div>
 
@@ -471,19 +466,17 @@ async function handleTransactionSubmit(e) {
                     return (
                       <div
                         key={idx}
-                        className={`flex justify-between items-center p-3.5 rounded-xl border transition-all duration-200 hover:scale-[1.005] ${
-                          isIncome
-                            ? "bg-emerald-950/10 border-emerald-500/10 hover:border-emerald-500/20"
-                            : "bg-rose-950/10 border-rose-500/10 hover:border-rose-500/20"
-                        }`}
+                        className={`flex justify-between items-center p-3.5 rounded-xl border transition-all duration-200 hover:scale-[1.005] ${isIncome
+                          ? "bg-emerald-950/10 border-emerald-500/10 hover:border-emerald-500/20"
+                          : "bg-rose-950/10 border-rose-500/10 hover:border-rose-500/20"
+                          }`}
                       >
                         <div className="flex items-center gap-3.5">
                           <div
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
-                              isIncome
-                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                : "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                            }`}
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center border ${isIncome
+                              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                              : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                              }`}
                           >
                             {isIncome ? (
                               <ArrowDownRight
@@ -504,9 +497,8 @@ async function handleTransactionSubmit(e) {
                           </div>
                         </div>
                         <span
-                          className={`font-bold text-sm tracking-tight ${
-                            isIncome ? "text-emerald-400" : "text-rose-400"
-                          }`}
+                          className={`font-bold text-sm tracking-tight ${isIncome ? "text-emerald-400" : "text-rose-400"
+                            }`}
                         >
                           {txn.amount}
                         </span>
@@ -613,11 +605,10 @@ async function handleTransactionSubmit(e) {
               <button
                 type="submit"
                 disabled={loadingTx}
-                className={`w-full py-3 rounded-xl font-semibold text-xs uppercase tracking-wider text-white shadow-md ${
-                  transactionType === "Expense"
-                    ? "bg-rose-600 hover:bg-rose-700"
-                    : "bg-emerald-600 hover:bg-emerald-700"
-                }`}
+                className={`w-full py-3 rounded-xl font-semibold text-xs uppercase tracking-wider text-white shadow-md ${transactionType === "Expense"
+                  ? "bg-rose-600 hover:bg-rose-700"
+                  : "bg-emerald-600 hover:bg-emerald-700"
+                  }`}
               >
                 {loadingTx ? "Saving..." : `Save ${transactionType}`}
               </button>

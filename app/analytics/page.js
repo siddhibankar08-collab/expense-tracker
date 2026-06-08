@@ -48,10 +48,7 @@ export default function AnalyticsPage() {
         .from("expense")
         .select("*")
         .eq("user_id", authData.user.id)
-        .order("date", { ascending: false });
-
-      console.log("EXPENSE DATA:", expenseData);
-      console.log("SUPABASE ERROR:", error);
+        .order("generated_date", { ascending: false });
 
       setExpenses(expenseData || []);
       setLoading(false);
@@ -73,17 +70,10 @@ export default function AnalyticsPage() {
     );
   }
 
-  const greeting =
-    new Date().getHours() < 12
-      ? "Good Morning"
-      : new Date().getHours() < 18
-      ? "Good Afternoon"
-      : "Good Evening";
-
-  // FINANCIAL COMPILATIONS
-  const credit = expenses.reduce((sum, e) => sum + Number(e.credit_amount || 0), 0);
-  const debit = expenses.reduce((sum, e) => sum + Number(e.debit_amount || 0), 0);
-  const balance = credit - debit;
+  const credit = Number(latest?.total_credit || 0);
+  const debit = Number(latest?.total_debit || 0);
+  const balance = Number(latest?.remaining_balance || 0);
+  const dues = Number(latest?.total_dues || 0);
 
   const total = credit + debit || 1;
   const creditPercent = Math.round((credit / total) * 100);
@@ -96,6 +86,12 @@ export default function AnalyticsPage() {
 
   const isHealthy = credit >= debit;
 
+  const healthScore =
+  credit + debit > 0
+    ? Math.min(100, Math.round((credit / (credit + debit)) * 100))
+    : 0;
+
+const isHealthy = credit >= debit;
   return (
     <div className="min-h-screen bg-[#0A0A0C] text-neutral-100 flex">
       {/* SIDEBAR */}
@@ -133,11 +129,10 @@ export default function AnalyticsPage() {
             <button
               key={idx}
               onClick={() => router.push(item.path)}
-              className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl transition-all duration-200 group relative ${
-                item.active
-                  ? "bg-white text-black font-semibold shadow-lg shadow-black/20"
-                  : "text-neutral-400 hover:bg-white/5 hover:text-white"
-              }`}
+              className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl transition-all duration-200 group relative ${item.active
+                ? "bg-white text-black font-semibold shadow-lg shadow-black/20"
+                : "text-neutral-400 hover:bg-white/5 hover:text-white"
+                }`}
             >
               <item.icon size={18} className={item.active ? "text-black" : "text-neutral-400 group-hover:text-white transition-colors"} />
               <span className="text-sm">{item.label}</span>
@@ -185,7 +180,8 @@ export default function AnalyticsPage() {
             <div className="mt-4 inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
               <TrendingUp size={14} />
               <span className="text-xs text-emerald-400">
-                Generated on {expenses.length > 0 ? expenses[0].date || expenses[0].created_at?.split("T")[0] : "-"}
+                Generated on{" "}
+                {latest?.generated_date || "-"}
               </span>
             </div>
 
@@ -213,7 +209,9 @@ export default function AnalyticsPage() {
                   Status
                 </p>
                 <h3 className="text-3xl font-bold">
-                  {isHealthy ? "Healthy" : "Attention"}
+                  {balance > dues
+                    ? "Healthy"
+                    : "Attention"}
                 </h3>
               </div>
             </div>
@@ -262,11 +260,26 @@ export default function AnalyticsPage() {
                 ₹{balance.toLocaleString()}
               </h3>
             </div>
+
+            <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800">
+              <div className="flex justify-between mb-3">
+                <p className="text-xs uppercase text-neutral-400">
+                  Total Dues
+                </p>
+
+                <div className="p-2 bg-orange-500/10 rounded-xl text-orange-400">
+                  <Receipt size={16} />
+                </div>
+              </div>
+
+              <h3 className="text-2xl font-bold">
+                ₹{dues.toLocaleString()}
+              </h3>
+            </div>
           </div>
 
           {/* SIDE-BY-SIDE METRICS BLOCK */}
           <div className="grid lg:grid-cols-3 gap-6">
-            {/* OVERVIEW LEFT CARD */}
             <div className="lg:col-span-2 bg-[#121214] rounded-2xl p-6 border border-neutral-800">
               <h2 className="font-bold text-white mb-6">
                 Financial Overview
@@ -274,22 +287,49 @@ export default function AnalyticsPage() {
 
               <div className="space-y-5">
                 {[
-                  { label: "Credit", value: credit, color: "bg-emerald-400" },
-                  { label: "Debit", value: debit, color: "bg-rose-400" },
-                  { label: "Balance", value: balance, color: "bg-white" },
+                  {
+                    label: "Credit",
+                    value: credit,
+                    color: "bg-emerald-400",
+                  },
+                  {
+                    label: "Debit",
+                    value: debit,
+                    color: "bg-rose-400",
+                  },
+                  {
+                    label: "Balance",
+                    value: balance,
+                    color: "bg-white",
+                  },
+                  {
+                    label: "Dues",
+                    value: dues,
+                    color: "bg-orange-400",
+                  },
                 ].map((item) => (
                   <div key={item.label}>
                     <div className="flex justify-between text-sm mb-2">
-                      <span className="text-neutral-400 font-medium">{item.label}</span>
-                      <span className="font-semibold text-neutral-200">₹{item.value.toLocaleString()}</span>
+                      <span>{item.label}</span>
+                      <span>
+                        ₹{item.value.toLocaleString()}
+                      </span>
                     </div>
 
                     <div className="h-3 bg-neutral-800 rounded-full overflow-hidden">
                       <div
-                        className={`${item.color} h-full transition-all duration-500`}
+                        className={`${item.color} h-full`}
                         style={{
                           width: `${Math.min(
-                            (Math.abs(item.value) / Math.max(credit, debit, Math.abs(balance), 1)) * 100,
+                            (item.value /
+                              Math.max(
+                                credit,
+                                debit,
+                                balance,
+                                dues,
+                                1
+                              )) *
+                              100,
                             100
                           )}%`,
                         }}
@@ -300,26 +340,29 @@ export default function AnalyticsPage() {
               </div>
             </div>
 
-            {/* HEALTH RIGHT CARD */}
-            <div className="bg-[#121214] rounded-2xl p-6 border border-neutral-800 flex flex-col justify-between">
-              <div>
-                <h2 className="font-bold mb-5 text-white">Balance Health</h2>
-                <div className="text-5xl font-black text-white">
-                  {healthScore}%
-                </div>
+            <div className="bg-[#121214] rounded-2xl p-6 border border-neutral-800">
+              <h2 className="font-bold mb-5">
+                Balance Health
+              </h2>
 
-                <div className="mt-5 w-full bg-neutral-800 h-2 rounded-full overflow-hidden">
-                  <div
-                    className="bg-emerald-400 h-full transition-all duration-500"
-                    style={{ width: `${healthScore}%` }}
-                  />
-                </div>
+              <div className="text-5xl font-black">
+                {balance > dues ? "82%" : "45%"}
               </div>
 
-              <p className="text-neutral-400 text-sm mt-6 lg:mt-0">
-                {balance >= 0
+              <div className="mt-5 w-full bg-neutral-800 h-2 rounded-full overflow-hidden">
+                <div
+                  className="bg-white h-full"
+                  style={{
+                    width:
+                      balance > dues ? "82%" : "45%",
+                  }}
+                />
+              </div>
+
+              <p className="text-neutral-400 text-sm mt-4">
+                {balance > dues
                   ? "Strong liquidity position"
-                  : "Monitor spending pattern"}
+                  : "Monitor outstanding dues"}
               </p>
             </div>
           </div>
@@ -338,43 +381,70 @@ export default function AnalyticsPage() {
             <div className="overflow-x-auto rounded-xl border border-neutral-800/60">
               <table className="w-full text-sm border-collapse">
                 <thead>
-                  <tr className="bg-[#18181C] text-neutral-400 text-xs uppercase tracking-wider border-b border-neutral-800">
-                    <th className="text-left px-5 py-4 font-semibold">Date</th>
-                    <th className="text-left px-5 py-4 font-semibold">Credit</th>
-                    <th className="text-left px-5 py-4 font-semibold">Debit</th>
-                    <th className="text-left px-5 py-4 font-semibold">Balance</th>
+                  <tr className="border-b border-neutral-800 text-neutral-400">
+                    <th className="text-left py-3">
+                      Date
+                    </th>
+                    <th className="text-left py-3">
+                      Credit
+                    </th>
+                    <th className="text-left py-3">
+                      Debit
+                    </th>
+                    <th className="text-left py-3">
+                      Balance
+                    </th>
+                    <th className="text-left py-3">
+                      Dues
+                    </th>
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-neutral-800/70">
-                  {expenses.map((row, idx) => (
+                <tbody>
+                  {analytics.map((row) => (
                     <tr
-                      key={row.expense_id || idx}
-                      className="hover:bg-white/[0.02] transition-colors"
+                      key={row.analytics_id}
+                      className="border-b border-neutral-800"
                     >
-                      <td className="px-5 py-4 text-neutral-300 font-medium">
-                        {row.date || row.created_at?.split("T")[0]}
+                      <td className="py-4">
+                        {row.generated_date}
                       </td>
 
-                      <td className="px-5 py-4 text-emerald-400 font-semibold">
-                        ₹{Number(row.credit_amount || 0).toLocaleString()}
+                      <td className="text-emerald-400 font-semibold">
+                        ₹
+                        {Number(
+                          row.total_credit
+                        ).toLocaleString()}
                       </td>
 
-                      <td className="px-5 py-4 text-rose-400 font-semibold">
-                        ₹{Number(row.debit_amount || 0).toLocaleString()}
+                      <td className="text-rose-400 font-semibold">
+                        ₹
+                        {Number(
+                          row.total_debit
+                        ).toLocaleString()}
                       </td>
 
-                      <td className="px-5 py-4 text-neutral-200 font-semibold">
-                        ₹{Number(row.balance || 0).toLocaleString()}
+                      <td className="font-semibold">
+                        ₹
+                        {Number(
+                          row.remaining_balance
+                        ).toLocaleString()}
+                      </td>
+
+                      <td className="text-orange-400 font-semibold">
+                        ₹
+                        {Number(
+                          row.total_dues
+                        ).toLocaleString()}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
 
-              {expenses.length === 0 && (
-                <div className="text-center py-12 text-neutral-500 bg-[#0E0E10]/40">
-                  No expenses found.
+              {analytics.length === 0 && (
+                <div className="text-center py-10 text-neutral-500">
+                  No analytics records found.
                 </div>
               )}
             </div>
