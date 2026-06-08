@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react"; // Imported useState to handle button switching
+import { useState } from "react";
+import { useRouter, usePathname } from "next/navigation"; // Added for sidebar routing and active state detection
 import {
   LayoutDashboard,
   PieChart,
@@ -50,8 +51,17 @@ const transactions = [
 ];
 
 export default function TransactionsPage() {
-  // Added state to track which view mode is currently active
+  const router = useRouter();
+  const pathname = usePathname(); // Allows checking the current active route dynamically
   const [viewMode, setViewMode] = useState("Monthly");
+
+  // Refactored navigation items array for clean route linking
+  const navItems = [
+    { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+    { icon: PieChart, label: "Analytics", path: "/analytics" },
+    { icon: Receipt, label: "Transactions", path: "/transactions" },
+    { icon: Settings, label: "Settings", path: "/settings" },
+  ];
 
   return (
     <div className="min-h-screen bg-[#0A0A0C] text-neutral-100 font-sans antialiased flex">
@@ -75,25 +85,29 @@ export default function TransactionsPage() {
         </div>
 
         <nav className="flex-1 px-4 py-6 space-y-1.5">
-          <button className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5">
-            <LayoutDashboard size={18} />
-            <span className="text-sm">Dashboard</span>
-          </button>
-
-          <button className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5">
-            <PieChart size={18} />
-            <span className="text-sm">Analytics</span>
-          </button>
-
-          <button className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl bg-white text-black font-semibold">
-            <Receipt size={18} />
-            <span className="text-sm">Transactions</span>
-          </button>
-
-          <button className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5">
-            <Settings size={18} />
-            <span className="text-sm">Settings</span>
-          </button>
+          {navItems.map((item, idx) => {
+            // Evaluates true if this item represents the current page path
+            const isActive = pathname === item.path || (item.path === "/transactions"); 
+            
+            return (
+              <button
+                key={idx}
+                onClick={() => router.push(item.path)}
+                className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl transition-all duration-200 group relative ${
+                  isActive
+                    ? "bg-white text-black font-semibold shadow-lg shadow-black/20"
+                    : "text-neutral-400 hover:bg-white/5 hover:text-white"
+                }`}
+              >
+                <item.icon 
+                  size={18} 
+                  className={isActive ? "text-black" : "text-neutral-400 group-hover:text-white transition-colors"} 
+                />
+                <span className="text-sm">{item.label}</span>
+                {isActive && <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-black" />}
+              </button>
+            );
+          })}
         </nav>
       </aside>
 
