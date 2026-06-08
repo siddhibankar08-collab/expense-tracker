@@ -1,6 +1,9 @@
 "use client";
 
-import { useState } from "react"; // Imported useState to handle button switching
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
+import Image from "next/image"; // Fixed: Added missing Image import
 import {
   LayoutDashboard,
   PieChart,
@@ -9,12 +12,63 @@ import {
   Bell,
   Search,
   ChevronDown,
-  ArrowDownRight,
 } from "lucide-react";
 
 export default function TransactionsPage() {
-  // Added state to track which view mode is currently active
+  const router = useRouter();
   const [viewMode, setViewMode] = useState("Monthly");
+  const [loading, setLoading] = useState(true);
+  const [transaction, setTransaction] = useState([]); // Fixed: Renamed to singular state
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      setLoading(true);
+      
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData?.user) {
+        router.push("/login");
+        return;
+      }
+
+      const { data: expenseRows, error } = await supabase
+        .from("expense")
+        .select("date, description, type, credit_amount, debit_amount")
+        .order("id", { ascending: false });
+
+      if (!error && expenseRows) {
+        const mapped = expenseRows.map((row) => ({
+          name: row.description || (row.type === "credit" ? "Income" : "Expense"),
+          category: row.type === "credit" ? "Income" : "Expense Log",
+          date: row.date || "N/A",
+          type: row.type === "credit" ? "Income" : "Expense",
+          amount:
+            (row.type === "credit" ? "+" : "-") +
+            "₹" +
+            (row.type === "credit"
+              ? row.credit_amount || 0
+              : row.debit_amount || 0
+            ).toLocaleString("en-IN"),
+        }));
+        setTransaction(mapped);
+      }
+      setLoading(false);
+    };
+
+    fetchTransactions();
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0C]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-neutral-200 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm font-medium text-neutral-400">
+            Fetching ledger entries...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0A0A0C] text-neutral-100 font-sans antialiased flex">
@@ -42,27 +96,32 @@ export default function TransactionsPage() {
           </div>
         </div>
 
-        {/* Dynamic Sidebar Nav */}
         <nav className="flex-1 px-4 py-6 space-y-1.5">
-          <button className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5">
-            <LayoutDashboard size={18} />
-            <span className="text-sm">Dashboard</span>
-          </button>
-
-          <button className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5">
-            <PieChart size={18} />
-            <span className="text-sm">Analytics</span>
-          </button>
-
-          <button className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl bg-white text-black font-semibold">
-            <Receipt size={18} />
-            <span className="text-sm">Transactions</span>
-          </button>
-
-          <button className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5">
-            <Settings size={18} />
-            <span className="text-sm">Settings</span>
-          </button>
+          {[
+            { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+            { icon: PieChart, label: "Analytics", path: "/analytics" },
+            { icon: Receipt, label: "Transactions", path: "/transaction", active: true },
+            { icon: Settings, label: "Settings", path: "/settings" },
+          ].map((item, idx) => (
+            <button
+              key={idx}
+              onClick={() => router.push(item.path)}
+              className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl transition-all duration-200 group relative ${
+                item.active
+                  ? "bg-white text-black font-semibold shadow-lg shadow-black/20"
+                  : "text-neutral-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <item.icon
+                size={18}
+                className={item.active ? "text-black" : "text-neutral-400 group-hover:text-white"}
+              />
+              <span className="text-sm">{item.label}</span>
+              {item.active && (
+                <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-black" />
+              )}
+            </button>
+          ))}
         </nav>
       </aside>
 
@@ -112,7 +171,6 @@ export default function TransactionsPage() {
               />
             </div>
 
-            {/* SEGMENTED CONTROL TIMEFRAME TOGGLE */}
             <div className="flex bg-[#1C1C1E] rounded-xl border border-neutral-800 p-1">
               {["Daily", "Weekly", "Monthly"].map((mode) => (
                 <button
@@ -139,7 +197,7 @@ export default function TransactionsPage() {
               </h2>
             </div>
 
-            {transactions.length === 0 ? (
+            {transaction.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-neutral-500">
                 <div className="p-3 bg-neutral-900 rounded-xl border border-neutral-800 mb-3">
                   <Receipt size={24} />
@@ -160,7 +218,7 @@ export default function TransactionsPage() {
                   </thead>
 
                   <tbody className="divide-y divide-neutral-800/60 text-sm">
-                    {transactions.map((txn, index) => {
+                    {transaction.map((txn, index) => {
                       const isIncome = txn.type === "Income";
                       return (
                         <tr
