@@ -7,53 +7,70 @@ import {
   Receipt,
   Settings,
 } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-
-const transactions = [
-  {
-    purpose: "Salary Credit",
-    category: "Income",
-    date: "01 Jun 2026",
-    time: "10:00 AM",
-    type: "Income",
-    amount: "+₹25,000",
-  },
-  {
-    purpose: "Grocery Shopping",
-    category: "Food",
-    date: "04 Jun 2026",
-    time: "03:45 PM",
-    type: "Expense",
-    amount: "-₹2,450",
-  },
-  {
-    purpose: "Netflix Subscription",
-    category: "Entertainment",
-    date: "06 Jun 2026",
-    time: "08:12 AM",
-    type: "Expense",
-    amount: "-₹499",
-  },
-  {
-    purpose: "Freelance Payment",
-    category: "Side Income",
-    date: "08 Jun 2026",
-    time: "11:30 AM",
-    type: "Income",
-    amount: "+₹8,000",
-  },
-  {
-    purpose: "Fuel",
-    category: "Transport",
-    date: "10 Jun 2026",
-    time: "06:20 PM",
-    type: "Expense",
-    amount: "-₹1,200",
-  },
-];
 
 export default function TransactionsPage() {
   const router = useRouter();
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      setLoading(true);
+
+      const { data: authData } = await supabase.auth.getUser();
+
+      if (!authData?.user) {
+        router.push("/login");
+        return;
+      }
+
+      // Fetch ONLY the expense rows belonging to this specific user
+      const { data: dbRows, error } = await supabase
+        .from("expense")
+        .select("id, date, description, type, credit_amount, debit_amount")
+        .eq("user_id", authData.user.id)
+        .order("date", { ascending: false });
+
+      if (!error && dbRows) {
+        // Map data safely to match the component's required structure
+        const mappedRows = dbRows.map((row) => {
+          const isIncome = row.type === "credit" || row.type === "income";
+          const rawAmount = isIncome ? (row.credit_amount || 0) : (row.debit_amount || 0);
+          
+          return {
+            id: row.id,
+            date: row.date || "N/A",
+            // Fallback text if timestamp details are managed externally
+            time: "Logged", 
+            purpose: row.description || (isIncome ? "Income Log" : "Expense Log"),
+            category: isIncome ? "Income" : "Expense",
+            type: isIncome ? "Income" : "Expense",
+            amount: `${isIncome ? "+" : "-"}₹${rawAmount.toLocaleString("en-IN")}`,
+          };
+        });
+
+        setTransactions(mappedRows);
+      }
+
+      setLoading(false);
+    };
+
+    fetchTransactions();
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0C]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-neutral-200 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-neutral-400">Loading records...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0A0A0C] text-neutral-100 font-sans antialiased flex">
@@ -99,7 +116,7 @@ export default function TransactionsPage() {
           </button>
 
           <button 
-            onClick={() => router.push("/transactions")} 
+            onClick={() => router.push("/transaction")} 
             className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl bg-white text-black font-semibold shadow-lg shadow-black/20"
           >
             <Receipt size={18} />
@@ -116,13 +133,12 @@ export default function TransactionsPage() {
         </nav>
       </aside>
 
-      {/* MAIN */}
+      {/* MAIN CONTENT AREA */}
       <main className="flex-1 lg:ml-64 min-h-screen flex flex-col">
         {/* TOP BAR */}
         <header className="bg-[#0A0A0C]/80 backdrop-blur-md border-b border-neutral-800 px-8 py-5">
           <div className="flex items-center justify-between">
             <div>
-              {/* MATCHED EXACTLY TO THE ANALYTICS PAGE FONT AND SIZE */}
               <h1 className="text-3xl font-black text-white">
                 Transactions
               </h1>
@@ -133,7 +149,7 @@ export default function TransactionsPage() {
           </div>
         </header>
 
-        {/* CONTENT */}
+        {/* CONTENT VIEW */}
         <div className="p-8 max-w-7xl w-full mx-auto space-y-6">
           {/* TABLE CONTAINER */}
           <div className="bg-[#121214] rounded-2xl border border-neutral-800 overflow-hidden">
@@ -147,24 +163,24 @@ export default function TransactionsPage() {
               <table className="w-full table-fixed min-w-[700px]">
                 <thead>
                   <tr className="border-b border-neutral-800 text-neutral-400 text-sm">
-                    <th className="text-left px-8 py-4 w-[20%]">Date</th>
-                    <th className="text-left px-8 py-4 w-[20%]">Time</th>
+                    <th className="text-left px-8 py-4 w-[25%]">Date</th>
+                    <th className="text-left px-8 py-4 w-[15%]">Status</th>
                     <th className="text-left px-8 py-4 w-[40%]">Purpose</th>
                     <th className="text-right px-8 py-4 w-[20%]">Credit/Debit</th>
                   </tr>
                 </thead>
 
                 <tbody>
-                  {transactions.map((txn, index) => (
+                  {transactions.map((txn) => (
                     <tr
-                      key={index}
+                      key={txn.id}
                       className="border-b border-neutral-800 hover:bg-white/[0.01] transition-colors"
                     >
                       <td className="px-8 py-5 text-neutral-300 text-base">
                         {txn.date}
                       </td>
 
-                      <td className="px-8 py-5 text-neutral-300 text-base">
+                      <td className="px-8 py-5 text-neutral-500 text-sm">
                         {txn.time}
                       </td>
 
@@ -190,6 +206,12 @@ export default function TransactionsPage() {
                   ))}
                 </tbody>
               </table>
+
+              {transactions.length === 0 && (
+                <div className="text-center py-12 text-neutral-500 border border-dashed border-neutral-800 rounded-b-2xl">
+                  No personal transaction data found.
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -3,10 +3,7 @@
 import {
   LayoutDashboard,
   PieChart,
-  Receipt,
   Settings,
-  Bell,
-  Search,
   TrendingUp,
   ArrowDownRight,
   ArrowUpRight,
@@ -22,7 +19,7 @@ export default function AnalyticsPage() {
   const router = useRouter();
 
   const [user, setUser] = useState(null);
-  const [analytics, setAnalytics] = useState([]);
+  const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,6 +33,7 @@ export default function AnalyticsPage() {
         return;
       }
 
+      // USER DATA - Strictly locked to authenticated user
       const { data: userData } = await supabase
         .from("users")
         .select("*")
@@ -44,27 +42,22 @@ export default function AnalyticsPage() {
 
       setUser(userData);
 
-      const { data: analyticsData } = await supabase
-        .from("analytics")
+      // EXPENSE DATA - Strictly locked to authenticated user
+      const { data: expenseData, error } = await supabase
+        .from("expense")
         .select("*")
         .eq("user_id", authData.user.id)
-        .order("generated_date", { ascending: false });
+        .order("date", { ascending: false });
 
-      setAnalytics(analyticsData || []);
+      console.log("EXPENSE DATA:", expenseData);
+      console.log("SUPABASE ERROR:", error);
+
+      setExpenses(expenseData || []);
       setLoading(false);
     };
 
     fetchData();
   }, [router]);
-
-  const latest = analytics?.[0];
-
-  const greeting =
-    new Date().getHours() < 12
-      ? "Good Morning"
-      : new Date().getHours() < 18
-      ? "Good Afternoon"
-      : "Good Evening";
 
   if (loading) {
     return (
@@ -79,14 +72,29 @@ export default function AnalyticsPage() {
     );
   }
 
-  const credit = Number(latest?.total_credit || 0);
-  const debit = Number(latest?.total_debit || 0);
-  const balance = Number(latest?.remaining_balance || 0);
+  const greeting =
+    new Date().getHours() < 12
+      ? "Good Morning"
+      : new Date().getHours() < 18
+        ? "Good Afternoon"
+        : "Good Evening";
 
+  // FINANCIAL COMPOSITIONS
+  const credit = expenses.reduce((sum, e) => sum + Number(e.credit_amount || 0), 0);
+  const debit = expenses.reduce((sum, e) => sum + Number(e.debit_amount || 0), 0);
+  const balance = credit - debit;
+
+  // RATIOS
   const total = credit + debit || 1;
-
   const creditPercent = Math.round((credit / total) * 100);
   const debitPercent = Math.round((debit / total) * 100);
+
+  const healthScore =
+    credit + debit > 0
+      ? Math.min(100, Math.round((credit / (credit + debit)) * 100))
+      : 0;
+
+  const isHealthy = credit >= debit;
 
   return (
     <div className="min-h-screen bg-[#0A0A0C] text-neutral-100 flex">
@@ -115,22 +123,19 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        {/* Updated Navigation Syncing All Three App Paths */}
         <nav className="flex-1 px-4 py-6 space-y-1.5">
           {[
             { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-  { icon: PieChart, label: "Analytics", path: "/analytics", active: true }, // Active here
-  { icon: Receipt, label: "Transactions", path: "/transaction" },          // Added this line
-  { icon: Settings, label: "Settings", path: "/settings" },
+            { icon: PieChart, label: "Analytics", path: "/analytics", active: true },
+            { icon: Settings, label: "Settings", path: "/settings" },
           ].map((item, idx) => (
             <button
               key={idx}
               onClick={() => router.push(item.path)}
-              className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl transition-all duration-200 group relative ${
-                item.active
-                  ? "bg-white text-black font-semibold shadow-lg shadow-black/20"
-                  : "text-neutral-400 hover:bg-white/5 hover:text-white"
-              }`}
+              className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl transition-all duration-200 group relative ${item.active
+                ? "bg-white text-black font-semibold shadow-lg shadow-black/20"
+                : "text-neutral-400 hover:bg-white/5 hover:text-white"
+                }`}
             >
               <item.icon size={18} className={item.active ? "text-black" : "text-neutral-400 group-hover:text-white transition-colors"} />
               <span className="text-sm">{item.label}</span>
@@ -140,29 +145,31 @@ export default function AnalyticsPage() {
         </nav>
       </aside>
 
-      {/* MAIN */}
+      {/* MAIN CONTAINER */}
       <main className="flex-1 lg:ml-64">
-        {/* TOP BAR */}
-<header className="bg-[#0A0A0C]/80 backdrop-blur-md border-b border-neutral-800 px-8 py-4 sticky top-0 z-10">
-  <div className="flex items-center justify-between gap-4">
-    <div>
-      {/* Big bold Analytics header text */}
-      <h1 className="text-3xl font-black text-white">
-        Analytics
-      </h1>
-      <p className="text-neutral-400 text-xs mt-0.5">
-        Deep dive into your visual spending habits and data metrics.
-      </p>
-    </div>
+        {/* HEADER - Search and Notification items cleanly removed */}
+        <header className="bg-[#0A0A0C]/80 backdrop-blur-md border-b border-neutral-800 px-8 py-4 sticky top-0 z-10">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-xl font-bold text-white">
+                {greeting}, {user?.name || user?.email?.split("@")[0]} 👋
+              </h1>
+              <p className="text-neutral-400 text-xs mt-0.5">
+                Financial analytics and insights.
+              </p>
+            </div>
 
-    <div className="flex items-center gap-4">
-      {/* ... your existing right-side code (Search, Bell, Profile Icon) stays the same ... */}
-    </div>
-  </div>
-</header>
+            {/* User Profile Avatar block remains for workspace settings parity */}
+            <div className="flex items-center gap-4">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2C2C2E] to-[#121214] border border-neutral-700 flex items-center justify-center font-semibold text-white text-sm shadow-md select-none">
+                {user?.name ? user.name[0].toUpperCase() : "U"}
+              </div>
+            </div>
+          </div>
+        </header>
 
         <div className="p-8 max-w-7xl mx-auto space-y-6">
-          {/* HERO */}
+          {/* HERO HEALTH STATUS CONTAINER */}
           <div className="relative overflow-hidden bg-gradient-to-br from-[#1C1C1E] via-[#121214] to-[#0A0A0C] rounded-2xl p-8 shadow-xl border border-neutral-800">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,#ffffff05_0%,transparent_60%)]" />
 
@@ -177,140 +184,82 @@ export default function AnalyticsPage() {
             <div className="mt-4 inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
               <TrendingUp size={14} />
               <span className="text-xs text-emerald-400">
-                Generated on{" "}
-                {latest?.generated_date || "-"}
+                Generated on {expenses.length > 0 ? expenses[0].date : "-"}
               </span>
             </div>
 
             <div className="grid md:grid-cols-3 gap-5 mt-8">
               <div>
-                <p className="text-xs text-neutral-500 uppercase">
-                  Credit Ratio
-                </p>
-                <h3 className="text-3xl font-bold text-emerald-400">
-                  {creditPercent}%
-                </h3>
+                <p className="text-xs text-neutral-500 uppercase">Credit Ratio</p>
+                <h3 className="text-3xl font-bold text-emerald-400">{creditPercent}%</h3>
               </div>
-
               <div>
-                <p className="text-xs text-neutral-500 uppercase">
-                  Debit Ratio
-                </p>
-                <h3 className="text-3xl font-bold text-rose-400">
-                  {debitPercent}%
-                </h3>
+                <p className="text-xs text-neutral-500 uppercase">Debit Ratio</p>
+                <h3 className="text-3xl font-bold text-rose-400">{debitPercent}%</h3>
               </div>
-
               <div>
-                <p className="text-xs text-neutral-500 uppercase">
-                  Status
-                </p>
-                <h3 className="text-3xl font-bold">
-                  {balance > 0 ? "Healthy" : "Attention"}
-                </h3>
+                <p className="text-xs text-neutral-500 uppercase">Status</p>
+                <h3 className="text-3xl font-bold">{isHealthy ? "Healthy" : "Attention"}</h3>
               </div>
             </div>
           </div>
 
-          {/* KPI */}
+          {/* KPI GRID */}
           <div className="grid md:grid-cols-3 gap-5">
             <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800">
               <div className="flex justify-between mb-3">
-                <p className="text-xs uppercase text-neutral-400">
-                  Total Credit
-                </p>
+                <p className="text-xs uppercase text-neutral-400">Total Credit</p>
                 <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-400">
-                  <ArrowDownRight
-                    size={16}
-                    className="rotate-180"
-                  />
+                  <ArrowDownRight size={16} className="rotate-180" />
                 </div>
               </div>
-
-              <h3 className="text-2xl font-bold">
-                ₹{credit.toLocaleString()}
-              </h3>
+              <h3 className="text-2xl font-bold">₹{credit.toLocaleString("en-IN")}</h3>
             </div>
 
             <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800">
               <div className="flex justify-between mb-3">
-                <p className="text-xs uppercase text-neutral-400">
-                  Total Debit
-                </p>
-
+                <p className="text-xs uppercase text-neutral-400">Total Debit</p>
                 <div className="p-2 bg-rose-500/10 rounded-xl text-rose-400">
                   <ArrowUpRight size={16} />
                 </div>
               </div>
-
-              <h3 className="text-2xl font-bold">
-                ₹{debit.toLocaleString()}
-              </h3>
+              <h3 className="text-2xl font-bold">₹{debit.toLocaleString("en-IN")}</h3>
             </div>
 
             <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800">
               <div className="flex justify-between mb-3">
-                <p className="text-xs uppercase text-neutral-400">
-                  Balance
-                </p>
-
-                <div className="p-2 bg-white/5 rounded-xl">
+                <p className="text-xs uppercase text-neutral-400">Balance</p>
+                <div className="p-2 bg-white/5 rounded-xl text-neutral-400">
                   <Wallet size={16} />
                 </div>
               </div>
-
-              <h3 className="text-2xl font-bold">
-                ₹{balance.toLocaleString()}
-              </h3>
+              <h3 className="text-2xl font-bold">₹{balance.toLocaleString("en-IN")}</h3>
             </div>
           </div>
 
-          {/* BALANCE HEALTH */}
-          <div className="grid lg:grid-cols-3 gap-6">
+          {/* BALANCE HEALTH & DISTRIBUTION SECTION */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* LEFT CARD - FINANCIAL OVERVIEW */}
             <div className="lg:col-span-2 bg-[#121214] rounded-2xl p-6 border border-neutral-800">
-              <h2 className="font-bold text-white mb-6">
-                Financial Overview
-              </h2>
-
+              <h2 className="font-bold text-white mb-6">Financial Overview</h2>
               <div className="space-y-5">
                 {[
-                  {
-                    label: "Credit",
-                    value: credit,
-                    color: "bg-emerald-400",
-                  },
-                  {
-                    label: "Debit",
-                    value: debit,
-                    color: "bg-rose-400",
-                  },
-                  {
-                    label: "Balance",
-                    value: balance,
-                    color: "bg-white",
-                  },
+                  { label: "Credit", value: credit, color: "bg-emerald-400" },
+                  { label: "Debit", value: debit, color: "bg-rose-400" },
+                  { label: "Balance", value: balance, color: "bg-white" },
                 ].map((item) => (
                   <div key={item.label}>
                     <div className="flex justify-between text-sm mb-2">
-                      <span>{item.label}</span>
-                      <span>
-                        ₹{item.value.toLocaleString()}
-                      </span>
+                      <span className="text-neutral-300 font-medium">{item.label}</span>
+                      <span className="font-semibold text-neutral-100">₹{item.value.toLocaleString("en-IN")}</span>
                     </div>
-
-                    <div className="h-3 bg-neutral-800 rounded-full overflow-hidden">
+                    {/* Fixed background colors to fit dashboard system theme standards */}
+                    <div className="h-3 bg-neutral-850 border border-neutral-800 rounded-full overflow-hidden">
                       <div
-                        className={`${item.color} h-full`}
+                        className={`h-full rounded-full transition-all duration-500 ${item.color}`}
                         style={{
                           width: `${Math.min(
-                            (item.value /
-                              Math.max(
-                                credit,
-                                debit,
-                                balance,
-                                1
-                              )) *
-                              100,
+                            (Math.abs(item.value) / Math.max(credit, debit, Math.abs(balance), 1)) * 100,
                             100
                           )}%`,
                         }}
@@ -321,99 +270,59 @@ export default function AnalyticsPage() {
               </div>
             </div>
 
+            {/* RIGHT CARD - PROGRESS TRACKER HEALTH BAR */}
             <div className="bg-[#121214] rounded-2xl p-6 border border-neutral-800">
-              <h2 className="font-bold mb-5">
-                Balance Health
-              </h2>
-
-              <div className="text-5xl font-black">
-                {balance > 0 ? "82%" : "45%"}
-              </div>
-
+              <h2 className="font-bold mb-5">Balance Health</h2>
+              <div className="text-5xl font-black">{healthScore}%</div>
               <div className="mt-5 w-full bg-neutral-800 h-2 rounded-full overflow-hidden">
                 <div
-                  className="bg-white h-full"
-                  style={{
-                    width:
-                      balance > 0 ? "82%" : "45%",
-                  }}
+                  className="bg-white h-full transition-all duration-500"
+                  style={{ width: `${healthScore}%` }}
                 />
               </div>
-
               <p className="text-neutral-400 text-sm mt-4">
-                {balance > 0
-                  ? "Strong liquidity position"
-                  : "Monitor outstanding financial ratios"}
+                {balance >= 0 ? "Strong liquidity position" : "Monitor spending pattern"}
               </p>
             </div>
           </div>
 
-          {/* HISTORY TABLE */}
+          {/* HISTORY DATA LOG TABLE */}
           <div className="bg-[#121214] rounded-2xl p-6 border border-neutral-800">
-            <h2 className="font-bold text-white">
-              Analytics History
-            </h2>
-
-            <p className="text-xs text-neutral-400 mt-1 mb-5">
-              Historical financial reports
-            </p>
+            <h2 className="font-bold text-white">Analytics History</h2>
+            <p className="text-xs text-neutral-400 mt-1 mb-5">Historical financial reports</p>
 
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-neutral-800 text-neutral-400">
-                    <th className="text-left py-3">
-                      Date
-                    </th>
-                    <th className="text-left py-3">
-                      Credit
-                    </th>
-                    <th className="text-left py-3">
-                      Debit
-                    </th>
-                    <th className="text-left py-3">
-                      Balance
-                    </th>
+                  <tr className="border-b border-neutral-800 text-neutral-400 text-left">
+                    <th className="py-3">Date</th>
+                    <th className="py-3">Description</th>
+                    <th className="py-3">Credit</th>
+                    <th className="py-3">Debit</th>
+                    <th className="py-3">Balance</th>
                   </tr>
                 </thead>
-
                 <tbody>
-                  {analytics.map((row) => (
-                    <tr
-                      key={row.analytics_id}
-                      className="border-b border-neutral-800"
-                    >
-                      <td className="py-4">
-                        {row.generated_date}
-                      </td>
-
+                  {expenses.map((row, idx) => (
+                    <tr key={row.id || idx} className="border-b border-neutral-800 text-neutral-300">
+                      <td className="py-4 whitespace-nowrap">{row.date || "N/A"}</td>
+                      <td className="py-4 text-neutral-400 max-w-[180px] truncate">{row.description || "No description"}</td>
                       <td className="text-emerald-400 font-semibold">
-                        ₹
-                        {Number(
-                          row.total_credit
-                        ).toLocaleString()}
+                        {row.credit_amount ? `₹${Number(row.credit_amount).toLocaleString("en-IN")}` : "₹0"}
                       </td>
-
                       <td className="text-rose-400 font-semibold">
-                        ₹
-                        {Number(
-                          row.total_debit
-                        ).toLocaleString()}
+                        {row.debit_amount ? `₹${Number(row.debit_amount).toLocaleString("en-IN")}` : "₹0"}
                       </td>
-
-                      <td className="font-semibold">
-                        ₹
-                        {Number(
-                          row.remaining_balance
-                        ).toLocaleString()}
+                      <td className="font-semibold text-white">
+                        ₹{Number(row.balance || 0).toLocaleString("en-IN")}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
 
-              {analytics.length === 0 && (
-                <div className="text-center py-10 text-neutral-500">
+              {expenses.length === 0 && (
+                <div className="text-center py-12 text-neutral-500 border border-dashed border-neutral-800 rounded-xl mt-4">
                   No analytics records found.
                 </div>
               )}
