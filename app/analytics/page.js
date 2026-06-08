@@ -5,6 +5,7 @@ import {
   PieChart,
   Settings,
   Bell,
+  Search,
   TrendingUp,
   ArrowDownRight,
   ArrowUpRight,
@@ -20,7 +21,7 @@ export default function AnalyticsPage() {
   const router = useRouter();
 
   const [user, setUser] = useState(null);
-  const [expenses, setExpenses] = useState([]);
+  const [analytics, setAnalytics] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,7 +35,6 @@ export default function AnalyticsPage() {
         return;
       }
 
-      // USER DATA
       const { data: userData } = await supabase
         .from("users")
         .select("*")
@@ -43,19 +43,27 @@ export default function AnalyticsPage() {
 
       setUser(userData);
 
-      // EXPENSE DATA
-      const { data: expenseData, error } = await supabase
-        .from("expense")
+      const { data: analyticsData } = await supabase
+        .from("analytics")
         .select("*")
         .eq("user_id", authData.user.id)
         .order("generated_date", { ascending: false });
 
-      setExpenses(expenseData || []);
+      setAnalytics(analyticsData || []);
       setLoading(false);
     };
 
     fetchData();
   }, [router]);
+
+  const latest = analytics?.[0];
+
+  const greeting =
+    new Date().getHours() < 12
+      ? "Good Morning"
+      : new Date().getHours() < 18
+      ? "Good Afternoon"
+      : "Good Evening";
 
   if (loading) {
     return (
@@ -73,25 +81,12 @@ export default function AnalyticsPage() {
   const credit = Number(latest?.total_credit || 0);
   const debit = Number(latest?.total_debit || 0);
   const balance = Number(latest?.remaining_balance || 0);
-  const dues = Number(latest?.total_dues || 0);
 
   const total = credit + debit || 1;
+
   const creditPercent = Math.round((credit / total) * 100);
   const debitPercent = Math.round((debit / total) * 100);
 
-  const healthScore =
-    credit + debit > 0
-      ? Math.min(100, Math.round((credit / (credit + debit)) * 100))
-      : 0;
-
-  const isHealthy = credit >= debit;
-
-  const healthScore =
-  credit + debit > 0
-    ? Math.min(100, Math.round((credit / (credit + debit)) * 100))
-    : 0;
-
-const isHealthy = credit >= debit;
   return (
     <div className="min-h-screen bg-[#0A0A0C] text-neutral-100 flex">
       {/* SIDEBAR */}
@@ -119,7 +114,7 @@ const isHealthy = credit >= debit;
           </div>
         </div>
 
-        {/* Navigation */}
+        {/* Updated Navigation Syncing All Three App Paths */}
         <nav className="flex-1 px-4 py-6 space-y-1.5">
           {[
             { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -129,10 +124,11 @@ const isHealthy = credit >= debit;
             <button
               key={idx}
               onClick={() => router.push(item.path)}
-              className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl transition-all duration-200 group relative ${item.active
-                ? "bg-white text-black font-semibold shadow-lg shadow-black/20"
-                : "text-neutral-400 hover:bg-white/5 hover:text-white"
-                }`}
+              className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl transition-all duration-200 group relative ${
+                item.active
+                  ? "bg-white text-black font-semibold shadow-lg shadow-black/20"
+                  : "text-neutral-400 hover:bg-white/5 hover:text-white"
+              }`}
             >
               <item.icon size={18} className={item.active ? "text-black" : "text-neutral-400 group-hover:text-white transition-colors"} />
               <span className="text-sm">{item.label}</span>
@@ -149,15 +145,31 @@ const isHealthy = credit >= debit;
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-xl font-bold text-white">
-                {greeting}, {user?.name || user?.email?.split("@")[0]} 👋
+                {greeting},{" "}
+                {user?.name ||
+                  user?.email?.split("@")[0]}{" "}
+                👋
               </h1>
+
               <p className="text-neutral-400 text-xs mt-0.5">
                 Financial analytics and insights.
               </p>
             </div>
 
             <div className="flex items-center gap-4">
-              <button className="p-2.5 bg-[#121214] border border-neutral-800 rounded-xl text-neutral-400 hover:text-white transition-colors">
+              <div className="hidden md:flex items-center bg-[#121214] border border-neutral-800 rounded-xl px-3 py-2">
+                <Search
+                  size={16}
+                  className="text-neutral-500"
+                />
+
+                <input
+                  placeholder="Search reports..."
+                  className="bg-transparent outline-none ml-2 text-xs w-56 text-neutral-200"
+                />
+              </div>
+
+              <button className="p-2.5 bg-[#121214] border border-neutral-800 rounded-xl">
                 <Bell size={18} />
               </button>
             </div>
@@ -209,9 +221,7 @@ const isHealthy = credit >= debit;
                   Status
                 </p>
                 <h3 className="text-3xl font-bold">
-                  {balance > dues
-                    ? "Healthy"
-                    : "Attention"}
+                  {balance > 0 ? "Healthy" : "Attention"}
                 </h3>
               </div>
             </div>
@@ -225,9 +235,13 @@ const isHealthy = credit >= debit;
                   Total Credit
                 </p>
                 <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-400">
-                  <ArrowDownRight size={16} className="rotate-180" />
+                  <ArrowDownRight
+                    size={16}
+                    className="rotate-180"
+                  />
                 </div>
               </div>
+
               <h3 className="text-2xl font-bold">
                 ₹{credit.toLocaleString()}
               </h3>
@@ -238,10 +252,12 @@ const isHealthy = credit >= debit;
                 <p className="text-xs uppercase text-neutral-400">
                   Total Debit
                 </p>
+
                 <div className="p-2 bg-rose-500/10 rounded-xl text-rose-400">
                   <ArrowUpRight size={16} />
                 </div>
               </div>
+
               <h3 className="text-2xl font-bold">
                 ₹{debit.toLocaleString()}
               </h3>
@@ -252,33 +268,19 @@ const isHealthy = credit >= debit;
                 <p className="text-xs uppercase text-neutral-400">
                   Balance
                 </p>
+
                 <div className="p-2 bg-white/5 rounded-xl">
                   <Wallet size={16} />
                 </div>
               </div>
+
               <h3 className="text-2xl font-bold">
                 ₹{balance.toLocaleString()}
               </h3>
             </div>
-
-            <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800">
-              <div className="flex justify-between mb-3">
-                <p className="text-xs uppercase text-neutral-400">
-                  Total Dues
-                </p>
-
-                <div className="p-2 bg-orange-500/10 rounded-xl text-orange-400">
-                  <Receipt size={16} />
-                </div>
-              </div>
-
-              <h3 className="text-2xl font-bold">
-                ₹{dues.toLocaleString()}
-              </h3>
-            </div>
           </div>
 
-          {/* SIDE-BY-SIDE METRICS BLOCK */}
+          {/* BALANCE HEALTH */}
           <div className="grid lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 bg-[#121214] rounded-2xl p-6 border border-neutral-800">
               <h2 className="font-bold text-white mb-6">
@@ -302,11 +304,6 @@ const isHealthy = credit >= debit;
                     value: balance,
                     color: "bg-white",
                   },
-                  {
-                    label: "Dues",
-                    value: dues,
-                    color: "bg-orange-400",
-                  },
                 ].map((item) => (
                   <div key={item.label}>
                     <div className="flex justify-between text-sm mb-2">
@@ -326,7 +323,6 @@ const isHealthy = credit >= debit;
                                 credit,
                                 debit,
                                 balance,
-                                dues,
                                 1
                               )) *
                               100,
@@ -346,7 +342,7 @@ const isHealthy = credit >= debit;
               </h2>
 
               <div className="text-5xl font-black">
-                {balance > dues ? "82%" : "45%"}
+                {balance > 0 ? "82%" : "45%"}
               </div>
 
               <div className="mt-5 w-full bg-neutral-800 h-2 rounded-full overflow-hidden">
@@ -354,32 +350,31 @@ const isHealthy = credit >= debit;
                   className="bg-white h-full"
                   style={{
                     width:
-                      balance > dues ? "82%" : "45%",
+                      balance > 0 ? "82%" : "45%",
                   }}
                 />
               </div>
 
               <p className="text-neutral-400 text-sm mt-4">
-                {balance > dues
+                {balance > 0
                   ? "Strong liquidity position"
-                  : "Monitor outstanding dues"}
+                  : "Monitor outstanding financial ratios"}
               </p>
             </div>
           </div>
 
           {/* HISTORY TABLE */}
           <div className="bg-[#121214] rounded-2xl p-6 border border-neutral-800">
-            <div className="mb-5">
-              <h2 className="font-bold text-white text-lg">
-                Analytics History
-              </h2>
-              <p className="text-xs text-neutral-400 mt-1">
-                Historical financial reports overview
-              </p>
-            </div>
+            <h2 className="font-bold text-white">
+              Analytics History
+            </h2>
 
-            <div className="overflow-x-auto rounded-xl border border-neutral-800/60">
-              <table className="w-full text-sm border-collapse">
+            <p className="text-xs text-neutral-400 mt-1 mb-5">
+              Historical financial reports
+            </p>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-neutral-800 text-neutral-400">
                     <th className="text-left py-3">
@@ -393,9 +388,6 @@ const isHealthy = credit >= debit;
                     </th>
                     <th className="text-left py-3">
                       Balance
-                    </th>
-                    <th className="text-left py-3">
-                      Dues
                     </th>
                   </tr>
                 </thead>
@@ -428,13 +420,6 @@ const isHealthy = credit >= debit;
                         ₹
                         {Number(
                           row.remaining_balance
-                        ).toLocaleString()}
-                      </td>
-
-                      <td className="text-orange-400 font-semibold">
-                        ₹
-                        {Number(
-                          row.total_dues
                         ).toLocaleString()}
                       </td>
                     </tr>
