@@ -2,102 +2,108 @@
 
 import {
   LayoutDashboard,
+  Wallet,
+  Receipt,
   PieChart,
   Settings,
-  TrendingUp,
-  ArrowDownRight,
   ArrowUpRight,
-  Wallet,
+  ArrowDownRight,
+  TrendingUp,
 } from "lucide-react";
-
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 
-export default function AnalyticsPage() {
+export default function Analytics() {
   const router = useRouter();
-
   const [user, setUser] = useState(null);
-  const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [totalIncome, setTotalIncome] = useState(0);
+  const [totalExpenses, setTotalExpenses] = useState(0);
+  const [netSavings, setNetSavings] = useState(0);
+  const [savingsRate, setSavingsRate] = useState(0);
+  const [expenseBreakdown, setExpenseBreakdown] = useState([]);
+
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchAnalyticsData = async () => {
       setLoading(true);
 
+      // 1. Check Auth User
       const { data: authData } = await supabase.auth.getUser();
-
       if (!authData?.user) {
         router.push("/login");
         return;
       }
 
-      // USER DATA - Strictly locked to authenticated user
+      // 2. Fetch User Profile Details
       const { data: userData } = await supabase
         .from("users")
         .select("*")
         .eq("user_id", authData.user.id)
         .single();
-
+      
       setUser(userData);
 
-      // EXPENSE DATA - Strictly locked to authenticated user
-      const { data: expenseData, error } = await supabase
+      // 3. Fetch Database Data for Calculations
+      const { data: expenseRows, error } = await supabase
         .from("expense")
-        .select("*")
-        .eq("user_id", authData.user.id)
-        .order("date", { ascending: false });
+        .select("credit_amount, debit_amount, type, description")
+        .order("id", { ascending: false });
 
-      console.log("EXPENSE DATA:", expenseData);
-      console.log("SUPABASE ERROR:", error);
+      if (!error && expenseRows && expenseRows.length > 0) {
+        let income = 0;
+        let expenses = 0;
+        const descriptionsMap = {};
 
-      setExpenses(expenseData || []);
+        expenseRows.forEach((row) => {
+          if (row.type === "credit") {
+            income += row.credit_amount || 0;
+          } else if (row.type === "debit") {
+            expenses += row.debit_amount || 0;
+            
+            // Group expenses by description text to make a primitive breakdown category list
+            const desc = row.description || "Other Expense";
+            descriptionsMap[desc] = (descriptionsMap[desc] || 0) + (row.debit_amount || 0);
+          }
+        });
+
+        setTotalIncome(income);
+        setTotalExpenses(expenses);
+        setNetSavings(income - expenses);
+
+        const totalDenom = income || 1;
+        setSavingsRate(Math.round(((income - expenses) / totalDenom) * 100));
+
+        // Format grouped breakdown items into an array
+        const sortedBreakdown = Object.entries(descriptionsMap)
+          .map(([name, value]) => ({ name, value }))
+          .sort((a, b) => b.value - a.value)
+          .slice(0, 5); // top 5 expenses
+
+        setExpenseBreakdown(sortedBreakdown);
+      }
+
       setLoading(false);
     };
 
-    fetchData();
+    fetchAnalyticsData();
   }, [router]);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0A0A0C]">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-4 border-neutral-200 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-neutral-400">
-            Loading analytics...
-          </p>
+          <div className="w-8 h-8 border-4 border-neutral-200 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm font-medium text-neutral-400">Loading metrics engine...</p>
         </div>
       </div>
     );
   }
 
-  const greeting =
-    new Date().getHours() < 12
-      ? "Good Morning"
-      : new Date().getHours() < 18
-        ? "Good Afternoon"
-        : "Good Evening";
-
-  // FINANCIAL COMPOSITIONS
-  const credit = expenses.reduce((sum, e) => sum + Number(e.credit_amount || 0), 0);
-  const debit = expenses.reduce((sum, e) => sum + Number(e.debit_amount || 0), 0);
-  const balance = credit - debit;
-
-  // RATIOS
-  const total = credit + debit || 1;
-  const creditPercent = Math.round((credit / total) * 100);
-  const debitPercent = Math.round((debit / total) * 100);
-
-  const healthScore =
-    credit + debit > 0
-      ? Math.min(100, Math.round((credit / (credit + debit)) * 100))
-      : 0;
-
-  const isHealthy = credit >= debit;
-
   return (
-    <div className="min-h-screen bg-[#0A0A0C] text-neutral-100 flex">
+    <div className="min-h-screen bg-[#0A0A0C] text-neutral-100 font-sans antialiased flex">
       {/* SIDEBAR */}
       <aside className="hidden lg:flex w-64 bg-gradient-to-br from-[#1C1C1E] via-[#121214] to-[#0A0A0C] flex-col fixed h-full border-r border-neutral-800 shadow-xl z-20">
         <div className="p-5 border-b border-neutral-800">
@@ -111,7 +117,6 @@ export default function AnalyticsPage() {
                 className="object-contain invert sepia-emerald hue-rotate-60 brightness-125"
               />
             </div>
-
             <div>
               <h1 className="font-bold text-lg text-[#04d292] tracking-tight leading-tight">
                 SpendWise
@@ -123,207 +128,136 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
+        {/* Sidebar Nav (Now updated with Transactions route explicitly mapped) */}
         <nav className="flex-1 px-4 py-6 space-y-1.5">
           {[
             { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
             { icon: PieChart, label: "Analytics", path: "/analytics", active: true },
+            { icon: Receipt, label: "Transactions", path: "/transaction" },
             { icon: Settings, label: "Settings", path: "/settings" },
           ].map((item, idx) => (
             <button
               key={idx}
               onClick={() => router.push(item.path)}
-              className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl transition-all duration-200 group relative ${item.active
-                ? "bg-white text-black font-semibold shadow-lg shadow-black/20"
-                : "text-neutral-400 hover:bg-white/5 hover:text-white"
-                }`}
+              className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl transition-all duration-200 group relative ${
+                item.active
+                  ? "bg-white text-black font-semibold shadow-lg shadow-black/20"
+                  : "text-neutral-400 hover:bg-white/5 hover:text-white"
+              }`}
             >
-              <item.icon size={18} className={item.active ? "text-black" : "text-neutral-400 group-hover:text-white transition-colors"} />
+              <item.icon
+                size={18}
+                className={item.active ? "text-black" : "text-neutral-400 group-hover:text-white transition-colors"}
+              />
               <span className="text-sm">{item.label}</span>
-              {item.active && <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-black" />}
+              {item.active && (
+                <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-black" />
+              )}
             </button>
           ))}
         </nav>
       </aside>
 
-      {/* MAIN CONTAINER */}
-      <main className="flex-1 lg:ml-64">
-        {/* HEADER - Search and Notification items cleanly removed */}
+      {/* MAIN CONTENT WINDOW */}
+      <main className="flex-1 lg:ml-64 min-h-screen flex flex-col">
         <header className="bg-[#0A0A0C]/80 backdrop-blur-md border-b border-neutral-800 px-8 py-4 sticky top-0 z-10">
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between gap-4">
             <div>
-              <h1 className="text-xl font-bold text-white">
-                {greeting}, {user?.name || user?.email?.split("@")[0]} 👋
-              </h1>
-              <p className="text-neutral-400 text-xs mt-0.5">
-                Financial analytics and insights.
-              </p>
-            </div>
-
-            {/* User Profile Avatar block remains for workspace settings parity */}
-            <div className="flex items-center gap-4">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2C2C2E] to-[#121214] border border-neutral-700 flex items-center justify-center font-semibold text-white text-sm shadow-md select-none">
-                {user?.name ? user.name[0].toUpperCase() : "U"}
-              </div>
+              <h1 className="text-xl font-bold text-white tracking-tight">Financial Analytics</h1>
+              <p className="text-neutral-400 text-xs mt-0.5">Deep-dive visual analysis of records.</p>
             </div>
           </div>
         </header>
 
-        <div className="p-8 max-w-7xl mx-auto space-y-6">
-          {/* HERO HEALTH STATUS CONTAINER */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-[#1C1C1E] via-[#121214] to-[#0A0A0C] rounded-2xl p-8 shadow-xl border border-neutral-800">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,#ffffff05_0%,transparent_60%)]" />
-
-            <p className="text-neutral-400 text-xs uppercase tracking-wider">
-              Analytics Overview
-            </p>
-
-            <h2 className="text-4xl font-black mt-2">
-              Financial Health Report
-            </h2>
-
-            <div className="mt-4 inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
-              <TrendingUp size={14} />
-              <span className="text-xs text-emerald-400">
-                Generated on {expenses.length > 0 ? expenses[0].date : "-"}
-              </span>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-5 mt-8">
-              <div>
-                <p className="text-xs text-neutral-500 uppercase">Credit Ratio</p>
-                <h3 className="text-3xl font-bold text-emerald-400">{creditPercent}%</h3>
-              </div>
-              <div>
-                <p className="text-xs text-neutral-500 uppercase">Debit Ratio</p>
-                <h3 className="text-3xl font-bold text-rose-400">{debitPercent}%</h3>
-              </div>
-              <div>
-                <p className="text-xs text-neutral-500 uppercase">Status</p>
-                <h3 className="text-3xl font-bold">{isHealthy ? "Healthy" : "Attention"}</h3>
-              </div>
-            </div>
-          </div>
-
-          {/* KPI GRID */}
-          <div className="grid md:grid-cols-3 gap-5">
-            <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800">
-              <div className="flex justify-between mb-3">
-                <p className="text-xs uppercase text-neutral-400">Total Credit</p>
-                <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-400">
+        <div className="p-8 max-w-7xl w-full mx-auto space-y-6 flex-1">
+          {/* DATA METRICS STRIP */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-neutral-400 text-xs font-medium uppercase tracking-wider">Gross Revenue</p>
+                <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl">
                   <ArrowDownRight size={16} className="rotate-180" />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold">₹{credit.toLocaleString("en-IN")}</h3>
+              <h3 className="text-2xl font-bold text-white">₹{totalIncome.toLocaleString("en-IN")}</h3>
             </div>
 
-            <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800">
-              <div className="flex justify-between mb-3">
-                <p className="text-xs uppercase text-neutral-400">Total Debit</p>
-                <div className="p-2 bg-rose-500/10 rounded-xl text-rose-400">
+            <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-neutral-400 text-xs font-medium uppercase tracking-wider">Burn Rate</p>
+                <div className="p-2 bg-rose-500/10 text-rose-400 rounded-xl">
                   <ArrowUpRight size={16} />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold">₹{debit.toLocaleString("en-IN")}</h3>
+              <h3 className="text-2xl font-bold text-white">₹{totalExpenses.toLocaleString("en-IN")}</h3>
             </div>
 
-            <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800">
-              <div className="flex justify-between mb-3">
-                <p className="text-xs uppercase text-neutral-400">Balance</p>
-                <div className="p-2 bg-white/5 rounded-xl text-neutral-400">
+            <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-neutral-400 text-xs font-medium uppercase tracking-wider">Net Savings</p>
+                <div className="p-2 bg-white/5 text-white rounded-xl">
                   <Wallet size={16} />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold">₹{balance.toLocaleString("en-IN")}</h3>
+              <h3 className="text-2xl font-bold text-white">₹{netSavings.toLocaleString("en-IN")}</h3>
             </div>
           </div>
 
-          {/* BALANCE HEALTH & DISTRIBUTION SECTION */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* LEFT CARD - FINANCIAL OVERVIEW */}
-            <div className="lg:col-span-2 bg-[#121214] rounded-2xl p-6 border border-neutral-800">
-              <h2 className="font-bold text-white mb-6">Financial Overview</h2>
-              <div className="space-y-5">
-                {[
-                  { label: "Credit", value: credit, color: "bg-emerald-400" },
-                  { label: "Debit", value: debit, color: "bg-rose-400" },
-                  { label: "Balance", value: balance, color: "bg-white" },
-                ].map((item) => (
-                  <div key={item.label}>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-neutral-300 font-medium">{item.label}</span>
-                      <span className="font-semibold text-neutral-100">₹{item.value.toLocaleString("en-IN")}</span>
-                    </div>
-                    {/* Fixed background colors to fit dashboard system theme standards */}
-                    <div className="h-3 bg-neutral-850 border border-neutral-800 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${item.color}`}
-                        style={{
-                          width: `${Math.min(
-                            (Math.abs(item.value) / Math.max(credit, debit, Math.abs(balance), 1)) * 100,
-                            100
-                          )}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
+          {/* VISUAL BREAKDOWN SECTION */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Savings Capacity Bar Chart Component */}
+            <div className="bg-[#121214] rounded-2xl p-6 border border-neutral-800 shadow-sm">
+              <h3 className="font-bold text-white tracking-tight mb-1">Savings Performance</h3>
+              <p className="text-xs text-neutral-400 mb-6">Ratio of retained income versus expenditures.</p>
+              
+              <div className="space-y-4">
+                <div className="flex justify-between items-center text-xs font-medium">
+                  <span className="text-neutral-400">Target Efficiency Index</span>
+                  <span className="text-white font-bold">{savingsRate}% Allocated</span>
+                </div>
+                <div className="w-full bg-neutral-800 h-4 rounded-full overflow-hidden p-0.5 border border-neutral-700">
+                  <div
+                    className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500"
+                    style={{ width: `${Math.max(0, Math.min(savingsRate, 100))}%` }}
+                  ></div>
+                </div>
+                <div className="flex items-center gap-2 text-[11px] text-neutral-500 bg-neutral-900/40 p-3 rounded-xl border border-neutral-800">
+                  <TrendingUp size={14} className="text-emerald-400" />
+                  <span>A higher metric represents a robust buffers portfolio setup.</span>
+                </div>
               </div>
             </div>
 
-            {/* RIGHT CARD - PROGRESS TRACKER HEALTH BAR */}
-            <div className="bg-[#121214] rounded-2xl p-6 border border-neutral-800">
-              <h2 className="font-bold mb-5">Balance Health</h2>
-              <div className="text-5xl font-black">{healthScore}%</div>
-              <div className="mt-5 w-full bg-neutral-800 h-2 rounded-full overflow-hidden">
-                <div
-                  className="bg-white h-full transition-all duration-500"
-                  style={{ width: `${healthScore}%` }}
-                />
-              </div>
-              <p className="text-neutral-400 text-sm mt-4">
-                {balance >= 0 ? "Strong liquidity position" : "Monitor spending pattern"}
-              </p>
-            </div>
-          </div>
+            {/* Categorized Proportional Breakdown Lists */}
+            <div className="bg-[#121214] rounded-2xl p-6 border border-neutral-800 shadow-sm">
+              <h3 className="font-bold text-white tracking-tight mb-1">Highest Cost Distributions</h3>
+              <p className="text-xs text-neutral-400 mb-5">Top transactional volume centers mapped dynamically.</p>
 
-          {/* HISTORY DATA LOG TABLE */}
-          <div className="bg-[#121214] rounded-2xl p-6 border border-neutral-800">
-            <h2 className="font-bold text-white">Analytics History</h2>
-            <p className="text-xs text-neutral-400 mt-1 mb-5">Historical financial reports</p>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-neutral-800 text-neutral-400 text-left">
-                    <th className="py-3">Date</th>
-                    <th className="py-3">Description</th>
-                    <th className="py-3">Credit</th>
-                    <th className="py-3">Debit</th>
-                    <th className="py-3">Balance</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {expenses.map((row, idx) => (
-                    <tr key={row.id || idx} className="border-b border-neutral-800 text-neutral-300">
-                      <td className="py-4 whitespace-nowrap">{row.date || "N/A"}</td>
-                      <td className="py-4 text-neutral-400 max-w-[180px] truncate">{row.description || "No description"}</td>
-                      <td className="text-emerald-400 font-semibold">
-                        {row.credit_amount ? `₹${Number(row.credit_amount).toLocaleString("en-IN")}` : "₹0"}
-                      </td>
-                      <td className="text-rose-400 font-semibold">
-                        {row.debit_amount ? `₹${Number(row.debit_amount).toLocaleString("en-IN")}` : "₹0"}
-                      </td>
-                      <td className="font-semibold text-white">
-                        ₹{Number(row.balance || 0).toLocaleString("en-IN")}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              {expenses.length === 0 && (
-                <div className="text-center py-12 text-neutral-500 border border-dashed border-neutral-800 rounded-xl mt-4">
-                  No analytics records found.
+              {expenseBreakdown.length === 0 ? (
+                <p className="text-xs text-neutral-500 py-8 text-center border border-dashed border-neutral-800 rounded-xl">
+                  No categorical debit logs parsed yet.
+                </p>
+              ) : (
+                <div className="space-y-3.5">
+                  {expenseBreakdown.map((item, idx) => {
+                    const percentage = totalExpenses > 0 ? Math.round((item.value / totalExpenses) * 100) : 0;
+                    return (
+                      <div key={idx} className="space-y-1">
+                        <div className="flex justify-between text-xs font-medium">
+                          <span className="text-neutral-300 truncate max-w-[200px]">{item.name}</span>
+                          <span className="text-neutral-400 font-semibold">
+                            ₹{item.value.toLocaleString("en-IN")} ({percentage}%)
+                          </span>
+                        </div>
+                        <div className="w-full bg-neutral-900 h-1.5 rounded-full overflow-hidden">
+                          <div
+                            className="bg-rose-500/60 h-full rounded-full"
+                            style={{ width: `${percentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
