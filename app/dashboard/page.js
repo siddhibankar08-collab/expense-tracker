@@ -81,9 +81,8 @@ export default function Dashboard() {
           "balance, credit_amount, debit_amount, type, date, description"
         )
         // you can add .eq("user_id", authData.user.id) later when RLS is stricter
-        .order("created_at", { ascending: false });
-      console.log("expenseRows:", expenseRows);
-      console.log("expenseError:", expenseError);
+        .order("id", { ascending: false });
+
       if (!expenseError && expenseRows && expenseRows.length > 0) {
         // 1) Balance = balance of the latest row
         const latest = expenseRows[0];
@@ -137,35 +136,50 @@ export default function Dashboard() {
   }, [router]);
 
   // Submit handler for the modal form
-  //Temporary function 
-async function handleTransactionSubmit(e) {
-  e.preventDefault();
-  setTxError("");
-  setLoadingTx(true);
+  async function handleTransactionSubmit(e) {
+    e.preventDefault();
+    setTxError("");
+    setLoadingTx(true);
 
-  try {
-    // 1) Get auth user (keep your logic)
-    const {
-      data: { user: authUser },
-      error: userError,
-    } = await supabase.auth.getUser();
+    try {
+      // 1) Get auth user
+      const {
+        data: { user: authUser },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-    if (userError || !authUser) {
-      setTxError("You must be logged in to add a transaction.");
-      return;
-    }
+      if (userError || !authUser) {
+        setTxError("You must be logged in to add a transaction.");
+        setLoadingTx(false);
+        return;
+      }
 
-    // 2) Basic validation
-    const numericAmount = Number(amount);
-    if (!numericAmount || numericAmount <= 0) {
-      setTxError("Amount must be a positive number.");
-      return;
-    }
+      // 2) Basic validation
+      const numericAmount = Number(amount);
+      if (!numericAmount || numericAmount <= 0) {
+        setTxError("Amount must be a positive number.");
+        setLoadingTx(false);
+        return;
+      }
 
-    if (!date) {
-      setTxError("Please select a date.");
-      return;
-    }
+      if (!date) {
+        setTxError("Please select a date.");
+        setLoadingTx(false);
+        return;
+      }
+
+      // Enforced validation rules for notes
+      if (!notes || notes.trim() === "") {
+        setTxError("Notes are required. Please describe the transaction.");
+        setLoadingTx(false);
+        return;
+      }
+
+      if (notes.length > 100) {
+        setTxError("Notes cannot exceed 100 characters.");
+        setLoadingTx(false);
+        return;
+      }
 
       const txType =
         transactionType === "Income" || transactionType === "income"
@@ -174,15 +188,15 @@ async function handleTransactionSubmit(e) {
 
       const currentBalance = balance;
 
-    const payload = {
-      user_id: authUser.id,
-      amount: numericAmount,
-      transactionType: txType,
-      currentBalance,
-      date,
-      description: notes || null,
-      due_amount: null,
-    };
+      const payload = {
+        user_id: authUser.id,
+        amount: numericAmount,
+        transactionType: txType,
+        currentBalance,
+        date,
+        description: notes.trim(),
+        due_amount: null,
+      };
 
       console.log("🔹 Sending payload to /api/expense/add:", payload);
 
@@ -282,15 +296,17 @@ async function handleTransactionSubmit(e) {
               active: true,
             },
             { icon: PieChart, label: "Analytics", path: "/analytics" },
+            { icon: Receipt, label: "Transactions", path: "/transaction" }, // Added here
             { icon: Settings, label: "Settings", path: "/settings" },
           ].map((item, idx) => (
             <button
               key={idx}
               onClick={() => router.push(item.path)}
-              className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl transition-all duration-200 group relative ${item.active
-                ? "bg-white text-black font-semibold shadow-lg shadow-black/20"
-                : "text-neutral-400 hover:bg-white/5 hover:text-white"
-                }`}
+              className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl transition-all duration-200 group relative ${
+                item.active
+                  ? "bg-white text-black font-semibold shadow-lg shadow-black/20"
+                  : "text-neutral-400 hover:bg-white/5 hover:text-white"
+              }`}
             >
               <item.icon
                 size={18}
@@ -373,7 +389,7 @@ async function handleTransactionSubmit(e) {
             <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800 shadow-sm relative overflow-hidden group hover:border-neutral-700 transition-all">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-neutral-400 text-xs font-medium uppercase tracking-wider">
-                  Total Expenditure
+                  Total Income
                 </p>
                 <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl">
                   <ArrowDownRight size={16} className="rotate-180" />
@@ -382,7 +398,9 @@ async function handleTransactionSubmit(e) {
               <h3 className="text-2xl font-bold text-white">
                 ₹{totalIncome.toLocaleString("en-IN")}
               </h3>
-
+              <p className="text-neutral-500 text-xs mt-1.5 font-medium">
+                No active metrics logs
+              </p>
             </div>
 
             <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800 shadow-sm relative overflow-hidden group hover:border-neutral-700 transition-all">
@@ -397,7 +415,9 @@ async function handleTransactionSubmit(e) {
               <h3 className="text-2xl font-bold text-white">
                 ₹{totalExpenses.toLocaleString("en-IN")}
               </h3>
-
+              <p className="text-neutral-500 text-xs mt-1.5 font-medium">
+                No active metrics logs
+              </p>
             </div>
 
             <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800 shadow-sm relative overflow-hidden group hover:border-neutral-700 transition-all">
@@ -409,16 +429,15 @@ async function handleTransactionSubmit(e) {
                   <Wallet size={16} />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-white">
-                ₹{(totalIncome - totalExpenses).toLocaleString("en-IN")}
-              </h3>              <div className="mt-2 w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden">
+              <h3 className="text-2xl font-bold text-white">₹0</h3>
+              <div className="mt-2 w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden">
                 <div
                   className="bg-neutral-700 h-full rounded-full"
                   style={{ width: `${savingsRate}%` }}
                 ></div>
               </div>
               <p className="text-neutral-500 text-[11px] font-medium mt-1.5">
-                0% Savings rate achieved
+                {savingsRate}% Savings rate achieved
               </p>
             </div>
           </div>
@@ -457,17 +476,19 @@ async function handleTransactionSubmit(e) {
                     return (
                       <div
                         key={idx}
-                        className={`flex justify-between items-center p-3.5 rounded-xl border transition-all duration-200 hover:scale-[1.005] ${isIncome
-                          ? "bg-emerald-950/10 border-emerald-500/10 hover:border-emerald-500/20"
-                          : "bg-rose-950/10 border-rose-500/10 hover:border-rose-500/20"
-                          }`}
+                        className={`flex justify-between items-center p-3.5 rounded-xl border transition-all duration-200 hover:scale-[1.005] ${
+                          isIncome
+                            ? "bg-emerald-950/10 border-emerald-500/10 hover:border-emerald-500/20"
+                            : "bg-rose-950/10 border-rose-500/10 hover:border-rose-500/20"
+                        }`}
                       >
                         <div className="flex items-center gap-3.5">
                           <div
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center border ${isIncome
-                              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                              : "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                              }`}
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
+                              isIncome
+                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                            }`}
                           >
                             {isIncome ? (
                               <ArrowDownRight
@@ -488,8 +509,9 @@ async function handleTransactionSubmit(e) {
                           </div>
                         </div>
                         <span
-                          className={`font-bold text-sm tracking-tight ${isIncome ? "text-emerald-400" : "text-rose-400"
-                            }`}
+                          className={`font-bold text-sm tracking-tight ${
+                            isIncome ? "text-emerald-400" : "text-rose-400"
+                          }`}
                         >
                           {txn.amount}
                         </span>
@@ -603,10 +625,11 @@ async function handleTransactionSubmit(e) {
               <button
                 type="submit"
                 disabled={loadingTx}
-                className={`w-full py-3 rounded-xl font-semibold text-xs uppercase tracking-wider text-white shadow-md ${transactionType === "Expense"
-                  ? "bg-rose-600 hover:bg-rose-700"
-                  : "bg-emerald-600 hover:bg-emerald-700"
-                  }`}
+                className={`w-full py-3 rounded-xl font-semibold text-xs uppercase tracking-wider text-white shadow-md ${
+                  transactionType === "Expense"
+                    ? "bg-rose-600 hover:bg-rose-700"
+                    : "bg-emerald-600 hover:bg-emerald-700"
+                }`}
               >
                 {loadingTx ? "Saving..." : `Save ${transactionType}`}
               </button>
