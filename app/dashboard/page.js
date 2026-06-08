@@ -77,35 +77,38 @@ export default function Dashboard() {
       // NEW: fetch latest metrics from expense table
       const { data: expenseRows, error: expenseError } = await supabase
         .from("expense")
-        .select(
-          "balance, credit_amount, debit_amount, type, date, description"
-        )
-        // you can add .eq("user_id", authData.user.id) later when RLS is stricter
+        .select("balance, credit_amount, debit_amount, type, date, description, created_at")
+        .eq("user_id", authData.user.id)
         .order("created_at", { ascending: false });
+
+
       console.log("expenseRows:", expenseRows);
       console.log("expenseError:", expenseError);
       if (!expenseError && expenseRows && expenseRows.length > 0) {
         // 1) Balance = balance of the latest row
         const latest = expenseRows[0];
-        setBalance(latest.balance || 0);
-
-        // 2) Total income / expenses
         let income = 0;
-        let expenses = 0;
-        expenseRows.forEach((row) => {
-          if (row.type === "credit") {
-            income += row.credit_amount || 0;
-          } else if (row.type === "debit") {
-            expenses += row.debit_amount || 0;
-          }
-        });
-        setTotalIncome(income);
-        setTotalExpenses(expenses);
+let expenses = 0;
 
-        // 3) Savings rate
-        const total = income || 1;
-        setSavingsRate(Math.round(((income - expenses) / total) * 100));
+// calculate totals first
+expenseRows.forEach((row) => {
+  if (row.type === "credit") {
+    income += row.credit_amount || 0;
+  } else if (row.type === "debit") {
+    expenses += row.debit_amount || 0;
+  }
+});
 
+// now safe to use
+setTotalIncome(income);
+setTotalExpenses(expenses);
+
+// balance after calculation
+setBalance(income - expenses);
+
+// savings rate
+const total = income || 1;
+setSavingsRate(Math.round(((income - expenses) / total) * 100));
         // 4) Recent transactions list
         const mapped = expenseRows.slice(0, 10).map((row) => ({
           name:
