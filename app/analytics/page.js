@@ -2,62 +2,66 @@
 
 import {
   LayoutDashboard,
+  Wallet,
+  Receipt,
   PieChart,
   Settings,
-  TrendingUp,
+  ArrowUpRight,
   ArrowDownRight,
   ArrowUpRight,
   Wallet,
-  Receipt,
 } from "lucide-react";
-
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 
-export default function AnalyticsPage() {
+export default function Analytics() {
   const router = useRouter();
-
   const [user, setUser] = useState(null);
-  const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [totalIncome, setTotalIncome] = useState(0);
+  const [totalExpenses, setTotalExpenses] = useState(0);
+  const [netSavings, setNetSavings] = useState(0);
+  const [savingsRate, setSavingsRate] = useState(0);
+  const [expenseBreakdown, setExpenseBreakdown] = useState([]);
+
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchAnalyticsData = async () => {
       setLoading(true);
 
+      // 1. Check Auth User
       const { data: authData } = await supabase.auth.getUser();
-
       if (!authData?.user) {
         router.push("/login");
         return;
       }
 
-      // USER PROFILE DATA
+      // USER DATA - Strictly locked to authenticated user
       const { data: userData } = await supabase
         .from("users")
         .select("*")
         .eq("user_id", authData.user.id)
         .single();
-
+      
       setUser(userData);
 
-      // LIVE EXPENSE ROWS FOR AUTHENTICATED USER
+      // EXPENSE DATA - Strictly locked to authenticated user
       const { data: expenseData, error } = await supabase
         .from("expense")
         .select("*")
         .eq("user_id", authData.user.id)
         .order("date", { ascending: false });
 
-      console.log("ANALYTICS DATA LOG:", expenseData);
-      console.log("SUPABASE FETCH ERROR:", error);
+      console.log("EXPENSE DATA:", expenseData);
+      console.log("SUPABASE ERROR:", error);
 
       setExpenses(expenseData || []);
       setLoading(false);
     };
 
-    fetchData();
+    fetchAnalyticsData();
   }, [router]);
 
   if (loading) {
@@ -65,7 +69,9 @@ export default function AnalyticsPage() {
       <div className="min-h-screen flex items-center justify-center bg-[#0A0A0C]">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-4 border-neutral-200 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-neutral-400">Loading metrics...</p>
+          <p className="text-sm text-neutral-400">
+            Loading analytics...
+          </p>
         </div>
       </div>
     );
@@ -78,7 +84,7 @@ export default function AnalyticsPage() {
         ? "Good Afternoon"
         : "Good Evening";
 
-  // AGGREGATIONS
+  // FINANCIAL COMPOSITIONS
   const credit = expenses.reduce((sum, e) => sum + Number(e.credit_amount || 0), 0);
   const debit = expenses.reduce((sum, e) => sum + Number(e.debit_amount || 0), 0);
   const balance = credit - debit;
@@ -96,7 +102,7 @@ export default function AnalyticsPage() {
   const isHealthy = credit >= debit;
 
   return (
-    <div className="min-h-screen bg-[#0A0A0C] text-neutral-100 flex">
+    <div className="min-h-screen bg-[#0A0A0C] text-neutral-100 font-sans antialiased flex">
       {/* SIDEBAR */}
       <aside className="hidden lg:flex w-64 bg-gradient-to-br from-[#1C1C1E] via-[#121214] to-[#0A0A0C] flex-col fixed h-full border-r border-neutral-800 shadow-xl z-20">
         <div className="p-5 border-b border-neutral-800">
@@ -110,7 +116,6 @@ export default function AnalyticsPage() {
                 className="object-contain invert sepia-emerald hue-rotate-60 brightness-125"
               />
             </div>
-
             <div>
               <h1 className="font-bold text-lg text-[#04d292] tracking-tight leading-tight">
                 SpendWise
@@ -122,47 +127,34 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
+        {/* Sidebar Nav (Now updated with Transactions route explicitly mapped) */}
         <nav className="flex-1 px-4 py-6 space-y-1.5">
-          <button 
-            onClick={() => router.push("/dashboard")} 
-            className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5 text-left transition-all"
-          >
-            <LayoutDashboard size={18} />
-            <span className="text-sm">Dashboard</span>
-          </button>
-
-          <button 
-            onClick={() => router.push("/analytics")} 
-            className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl bg-white text-black font-semibold shadow-lg shadow-black/20 text-left relative"
-          >
-            <PieChart size={18} className="text-black" />
-            <span className="text-sm">Analytics</span>
-            <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-black" />
-          </button>
-
-          <button 
-            onClick={() => router.push("/transactions")} 
-            className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5 text-left transition-all"
-          >
-            <Receipt size={18} />
-            <span className="text-sm">Transactions</span>
-          </button>
-
-          <button 
-            onClick={() => router.push("/settings")} 
-            className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5 text-left transition-all"
-          >
-            <Settings size={18} />
-            <span className="text-sm">Settings</span>
-          </button>
+          {[
+            { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+            { icon: PieChart, label: "Analytics", path: "/analytics", active: true },
+            { icon: Settings, label: "Settings", path: "/settings" },
+          ].map((item, idx) => (
+            <button
+              key={idx}
+              onClick={() => router.push(item.path)}
+              className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-xl transition-all duration-200 group relative ${item.active
+                ? "bg-white text-black font-semibold shadow-lg shadow-black/20"
+                : "text-neutral-400 hover:bg-white/5 hover:text-white"
+                }`}
+            >
+              <item.icon size={18} className={item.active ? "text-black" : "text-neutral-400 group-hover:text-white transition-colors"} />
+              <span className="text-sm">{item.label}</span>
+              {item.active && <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-black" />}
+            </button>
+          ))}
         </nav>
       </aside>
 
       {/* MAIN CONTAINER */}
       <main className="flex-1 lg:ml-64">
-        {/* HEADER */}
+        {/* HEADER - Search and Notification items cleanly removed */}
         <header className="bg-[#0A0A0C]/80 backdrop-blur-md border-b border-neutral-800 px-8 py-4 sticky top-0 z-10">
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between gap-4">
             <div>
               <h1 className="text-xl font-bold text-white">
                 {greeting}, {user?.name || user?.email?.split("@")[0]} 👋
@@ -172,6 +164,7 @@ export default function AnalyticsPage() {
               </p>
             </div>
 
+            {/* User Profile Avatar block remains for workspace settings parity */}
             <div className="flex items-center gap-4">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2C2C2E] to-[#121214] border border-neutral-700 flex items-center justify-center font-semibold text-white text-sm shadow-md select-none">
                 {user?.name ? user.name[0].toUpperCase() : "U"}
@@ -181,7 +174,7 @@ export default function AnalyticsPage() {
         </header>
 
         <div className="p-8 max-w-7xl mx-auto space-y-6">
-          {/* HERO HEALTH OVERVIEW CARD */}
+          {/* HERO HEALTH STATUS CONTAINER */}
           <div className="relative overflow-hidden bg-gradient-to-br from-[#1C1C1E] via-[#121214] to-[#0A0A0C] rounded-2xl p-8 shadow-xl border border-neutral-800">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,#ffffff05_0%,transparent_60%)]" />
 
@@ -216,7 +209,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          {/* KPI COUNTER METRICS GRID */}
+          {/* KPI GRID */}
           <div className="grid md:grid-cols-3 gap-5">
             <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800">
               <div className="flex justify-between mb-3">
@@ -225,33 +218,33 @@ export default function AnalyticsPage() {
                   <ArrowDownRight size={16} className="rotate-180" />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold">₹{credit.toLocaleString("en-IN")}</h3>
+              <h3 className="text-2xl font-bold text-white">₹{totalIncome.toLocaleString("en-IN")}</h3>
             </div>
 
-            <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800">
-              <div className="flex justify-between mb-3">
-                <p className="text-xs uppercase text-neutral-400">Total Debit</p>
-                <div className="p-2 bg-rose-500/10 rounded-xl text-rose-400">
+            <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-neutral-400 text-xs font-medium uppercase tracking-wider">Burn Rate</p>
+                <div className="p-2 bg-rose-500/10 text-rose-400 rounded-xl">
                   <ArrowUpRight size={16} />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold">₹{debit.toLocaleString("en-IN")}</h3>
+              <h3 className="text-2xl font-bold text-white">₹{totalExpenses.toLocaleString("en-IN")}</h3>
             </div>
 
-            <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800">
-              <div className="flex justify-between mb-3">
-                <p className="text-xs uppercase text-neutral-400">Balance</p>
-                <div className="p-2 bg-white/5 rounded-xl text-neutral-400">
+            <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-neutral-400 text-xs font-medium uppercase tracking-wider">Net Savings</p>
+                <div className="p-2 bg-white/5 text-white rounded-xl">
                   <Wallet size={16} />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold">₹{balance.toLocaleString("en-IN")}</h3>
+              <h3 className="text-2xl font-bold text-white">₹{netSavings.toLocaleString("en-IN")}</h3>
             </div>
           </div>
 
-          {/* FINANCIAL OVERVIEW AND PROGRESS COMPASS CARD BLOCK */}
+          {/* BALANCE HEALTH & DISTRIBUTION SECTION */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* LEFT CARD - OVERVIEW PROGRESS LINES */}
+            {/* LEFT CARD - FINANCIAL OVERVIEW */}
             <div className="lg:col-span-2 bg-[#121214] rounded-2xl p-6 border border-neutral-800">
               <h2 className="font-bold text-white mb-6">Financial Overview</h2>
               <div className="space-y-5">
@@ -265,7 +258,8 @@ export default function AnalyticsPage() {
                       <span className="text-neutral-300 font-medium">{item.label}</span>
                       <span className="font-semibold text-neutral-100">₹{item.value.toLocaleString("en-IN")}</span>
                     </div>
-                    <div className="h-3 bg-neutral-900 border border-neutral-800 rounded-full overflow-hidden">
+                    {/* Fixed background colors to fit dashboard system theme standards */}
+                    <div className="h-3 bg-neutral-850 border border-neutral-800 rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${item.color}`}
                         style={{
@@ -285,7 +279,7 @@ export default function AnalyticsPage() {
             <div className="bg-[#121214] rounded-2xl p-6 border border-neutral-800">
               <h2 className="font-bold mb-5">Balance Health</h2>
               <div className="text-5xl font-black">{healthScore}%</div>
-              <div className="mt-5 w-full bg-neutral-900 h-2 rounded-full overflow-hidden">
+              <div className="mt-5 w-full bg-neutral-800 h-2 rounded-full overflow-hidden">
                 <div
                   className="bg-white h-full transition-all duration-500"
                   style={{ width: `${healthScore}%` }}
@@ -297,7 +291,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          {/* HISTORY DATA LOG LOGISTIC TABLE */}
+          {/* HISTORY DATA LOG TABLE */}
           <div className="bg-[#121214] rounded-2xl p-6 border border-neutral-800">
             <h2 className="font-bold text-white">Analytics History</h2>
             <p className="text-xs text-neutral-400 mt-1 mb-5">Historical financial reports</p>
@@ -310,18 +304,22 @@ export default function AnalyticsPage() {
                     <th className="py-3">Description</th>
                     <th className="py-3">Credit</th>
                     <th className="py-3">Debit</th>
+                    <th className="py-3">Balance</th>
                   </tr>
                 </thead>
                 <tbody>
                   {expenses.map((row, idx) => (
                     <tr key={row.id || idx} className="border-b border-neutral-800 text-neutral-300">
                       <td className="py-4 whitespace-nowrap">{row.date || "N/A"}</td>
-                      <td className="py-4 text-neutral-400 max-w-[220px] truncate">{row.description || "No description"}</td>
+                      <td className="py-4 text-neutral-400 max-w-[180px] truncate">{row.description || "No description"}</td>
                       <td className="text-emerald-400 font-semibold">
                         {row.credit_amount ? `₹${Number(row.credit_amount).toLocaleString("en-IN")}` : "₹0"}
                       </td>
                       <td className="text-rose-400 font-semibold">
                         {row.debit_amount ? `₹${Number(row.debit_amount).toLocaleString("en-IN")}` : "₹0"}
+                      </td>
+                      <td className="font-semibold text-white">
+                        ₹{Number(row.balance || 0).toLocaleString("en-IN")}
                       </td>
                     </tr>
                   ))}
@@ -330,7 +328,7 @@ export default function AnalyticsPage() {
 
               {expenses.length === 0 && (
                 <div className="text-center py-12 text-neutral-500 border border-dashed border-neutral-800 rounded-xl mt-4">
-                  No personal transaction entries recorded.
+                  No analytics records found.
                 </div>
               )}
             </div>

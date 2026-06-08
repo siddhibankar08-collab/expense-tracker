@@ -100,19 +100,22 @@ export default function DashboardPage() {
       if (!amount || isNaN(numericAmount) || numericAmount <= 0) {
         throw new Error("Please enter a valid amount");
       }
-      if (!date) throw new Error("Please select a date");
-      if (!notes.trim()) throw new Error("Please add a description");
 
-      // 1. Normalize type check constraint ('credit' or 'debit')
-      const backendType = transactionType.toLowerCase() === "income" ? "credit" : "debit";
+      if (!date) {
+        setTxError("Please select a date.");
+        setLoadingTx(false);
+        return;
+      }
 
-      // 2. Client-side math calculation to satisfy balance numeric NOT NULL
-      const currentRunningBalance = Number(metrics.balance || 0);
-      const computedNewBalance = backendType === "credit"
-        ? currentRunningBalance + numericAmount
-        : currentRunningBalance - numericAmount;
+      if (!notes || notes.trim() === "") {
+        setTxError("Notes are required. Please describe the transaction.");
+        setLoadingTx(false);
+        return;
+      }
 
-      // 3. Assemble exact schema matching layout payload
+      const dbType = transactionType.toLowerCase() === "income" ? "income" : "expense";
+
+      // Payload configuration matching API backend validators
       const payload = {
         user_id: user.user_id,
         type: backendType,
@@ -272,37 +275,64 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* RECENT ACTIVITY TABLE LOG */}
-          <div className="bg-[#121214] border border-neutral-800 rounded-2xl p-6">
-            <h3 className="font-bold text-lg text-white">Recent Activity</h3>
-            <p className="text-neutral-500 text-xs">Your latest logs and settlements</p>
+          {/* RECENT ACTIVITY TABLE */}
+          <div className="grid lg:grid-cols-1 gap-6">
+            <div className="bg-[#121214] rounded-2xl p-6 border border-neutral-800 shadow-sm">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h2 className="font-bold text-white tracking-tight">Recent Activity</h2>
+                  <p className="text-xs text-neutral-400 mt-0.5">Your latest logs and settlements</p>
+                </div>
+              </div>
 
-            <div className="mt-5 space-y-3">
-              {recentActivity.slice(0, 5).map((item, idx) => {
-                const isIncome = item.type === "credit" || item.type === "income";
-                const rowAmount = isIncome ? (item.credit_amount || 0) : (item.debit_amount || 0);
-
-                return (
-                  <div key={item.id || idx} className="flex justify-between items-center p-4 bg-neutral-900/40 rounded-xl border border-neutral-800 hover:bg-neutral-900/80 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className={`p-2.5 rounded-xl border ${isIncome ? "bg-emerald-500/5 border-emerald-500/10 text-emerald-400" : "bg-rose-500/5 border-rose-500/10 text-rose-400"}`}>
-                        {isIncome ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-white">{item.description}</h4>
-                        <p className="text-xs text-neutral-500 mt-0.5">{item.date}</p>
-                      </div>
-                    </div>
-                    <span className={`font-bold text-sm ${isIncome ? "text-emerald-400" : "text-rose-400"}`}>
-                      {isIncome ? "+" : "-"}₹{Number(rowAmount).toLocaleString("en-IN")}
-                    </span>
+              {transactions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 border border-dashed border-neutral-800 rounded-xl bg-neutral-900/10">
+                  <div className="p-3 bg-neutral-900 rounded-xl border border-neutral-800 text-neutral-500 mb-3">
+                    <Receipt size={22} strokeWidth={1.5} />
                   </div>
-                );
-              })}
-
-              {recentActivity.length === 0 && (
-                <div className="text-center py-8 text-neutral-500 border border-dashed border-neutral-800 rounded-xl">
-                  No active transactional records found.
+                  <h4 className="text-sm font-semibold text-neutral-300">No recent activity yet</h4>
+                  <p className="text-xs text-neutral-500 mt-1 max-w-[240px] text-center leading-relaxed">
+                    Connected backend entry files are empty. Click add transaction above to update metrics.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {transactions.map((txn, idx) => {
+                    const isIncome = txn.type === "income";
+                    return (
+                      <div
+                        key={idx}
+                        className={`flex justify-between items-center p-3.5 rounded-xl border transition-all duration-200 hover:scale-[1.005] ${
+                          isIncome
+                            ? "bg-emerald-950/10 border-emerald-500/10 hover:border-emerald-500/20"
+                            : "bg-rose-950/10 border-rose-500/10 hover:border-rose-500/20"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3.5">
+                          <div
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
+                              isIncome
+                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                            }`}
+                          >
+                            {isIncome ? (
+                              <ArrowDownRight size={18} className="rotate-180" />
+                            ) : (
+                              <Receipt size={18} />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-sm text-neutral-200">{txn.name}</p>
+                            <p className="text-xs text-neutral-500 mt-0.5">{txn.date}</p>
+                          </div>
+                        </div>
+                        <span className={`font-bold text-sm tracking-tight ${isIncome ? "text-emerald-400" : "text-rose-400"}`}>
+                          {txn.amount}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
