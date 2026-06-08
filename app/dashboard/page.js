@@ -60,57 +60,27 @@ export default function DashboardPage() {
       // Fetch Transaction Rows
       const { data: expenseData, error } = await supabase
         .from("expense")
-        .select(
-          "balance, credit_amount, debit_amount, type, date, description"
-        )
-        // you can add .eq("user_id", authData.user.id) later when RLS is stricter
+        .select("*")
+        .eq("user_id", authData.user.id)
         .order("created_at", { ascending: false });
-      console.log("expenseRows:", expenseRows);
-      console.log("expenseError:", expenseError);
-      if (!expenseError && expenseRows && expenseRows.length > 0) {
-        // 1) Balance = balance of the latest row
-        const latest = expenseRows[0];
-        setBalance(latest.balance || 0);
 
-        // 2) Total income / expenses
-        let income = 0;
-        let expenses = 0;
-        expenseRows.forEach((row) => {
-          if (row.type === "credit") {
-            income += row.credit_amount || 0;
-          } else if (row.type === "debit") {
-            expenses += row.debit_amount || 0;
-          }
+      if (!error && expenseData) {
+        setRecentActivity(expenseData);
+
+        // Compute Metrics Aggregates based on your database rows
+        const incomeSum = expenseData.reduce((sum, item) => sum + Number(item.credit_amount || 0), 0);
+        const expenseSum = expenseData.reduce((sum, item) => sum + Number(item.debit_amount || 0), 0);
+        
+        // If there are existing records, take the balance of the newest transaction
+        const currentRunningBalance = expenseData.length > 0 
+          ? Number(expenseData[0].balance || 0) 
+          : 20000;
+
+        setMetrics({
+          balance: currentRunningBalance,
+          totalIncome: incomeSum,
+          totalExpenses: expenseSum,
         });
-        setTotalIncome(income);
-        setTotalExpenses(expenses);
-
-        // 3) Savings rate
-        const total = income || 1;
-        setSavingsRate(Math.round(((income - expenses) / total) * 100));
-
-        // 4) Recent transactions list
-        const mapped = expenseRows.slice(0, 10).map((row) => ({
-          name:
-            row.description || (row.type === "credit" ? "Income" : "Expense"),
-          date: row.date,
-          amount:
-            (row.type === "credit" ? "+" : "-") +
-            "₹" +
-            (row.type === "credit"
-              ? row.credit_amount || 0
-              : row.debit_amount || 0
-            ).toLocaleString("en-IN"),
-          type: row.type === "credit" ? "income" : "expense",
-        }));
-        setTransactions(mapped);
-      } else {
-        // no rows yet
-        setBalance(0);
-        setTotalIncome(0);
-        setTotalExpenses(0);
-        setSavingsRate(0);
-        setTransactions([]);
       }
 
       setLoading(false);

@@ -13,10 +13,11 @@ import Image from "next/image";
 
 export default function TransactionsPage() {
   const router = useRouter();
-  
+
   const [user, setUser] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -38,12 +39,17 @@ export default function TransactionsPage() {
 
       setUser(userData);
 
-      // 2. FETCH LIVE TRANSACTION ROWS FOR THIS AUTHENTICATED USER
-      const { data: dbRows, error } = await supabase
+      let query = supabase
         .from("expense")
         .select("*")
         .eq("user_id", authData.user.id)
-        .order("date", { ascending: false });
+        .order("created_at", { ascending: false });
+
+      if (!showAll) {
+        query = query.limit(10);
+      }
+
+      const { data: dbRows, error } = await query;
 
       if (!error && dbRows) {
         // Map database columns to the component structure safely
@@ -51,16 +57,16 @@ export default function TransactionsPage() {
           // Normalize type checking to handle case variants securely
           const normalizedType = String(row.type || "").toLowerCase();
           const isIncome = normalizedType === "credit" || normalizedType === "income";
-          
+
           // Fallback parsing logic to make sure amounts never show up as NaN
           const rawAmount = isIncome ? (row.credit_amount || 0) : (row.debit_amount || 0);
           const currentRunningBalance = row.balance || 0;
-          
+
           return {
             id: row.expense_id || row.id,
             date: row.date || "N/A",
             // We can show the running balance snapshot calculated by your submit form here
-            balanceSnapshot: `₹${Number(currentRunningBalance).toLocaleString("en-IN")}`, 
+            balanceSnapshot: `₹${Number(currentRunningBalance).toLocaleString("en-IN")}`,
             purpose: row.description || (isIncome ? "Income Log" : "Expense Log"),
             category: row.category || (isIncome ? "Income" : "Expense"),
             type: isIncome ? "Income" : "Expense",
@@ -75,7 +81,7 @@ export default function TransactionsPage() {
     };
 
     fetchTransactions();
-  }, [router]);
+  }, [router, showAll]);
 
   if (loading) {
     return (
@@ -95,14 +101,14 @@ export default function TransactionsPage() {
         <div className="p-5 border-b border-neutral-800">
           <div className="flex items-center gap-3">
             <div className="p-1.5 bg-emerald-500/5 backdrop-blur-sm rounded-xl border border-emerald-500/20 shadow-sm flex items-center justify-center shrink-0">
-                          <Image
-                            src="/images/spendwiselogo.png"
-                            alt="SpendWise Logo"
-                            width={36}
-                            height={36}
-                            className="object-contain invert sepia-emerald hue-rotate-60 brightness-125"
-                          />
-                        </div>
+              <Image
+                src="/images/spendwiselogo.png"
+                alt="SpendWise Logo"
+                width={36}
+                height={36}
+                className="object-contain invert sepia-emerald hue-rotate-60 brightness-125"
+              />
+            </div>
             <div>
               <h1 className="font-bold text-lg text-[#04d292] tracking-tight leading-tight">
                 SpendWise
@@ -114,24 +120,24 @@ export default function TransactionsPage() {
           </div>
         </div>
 
-<nav className="flex-1 px-4 py-6 space-y-1.5 flex flex-col h-[calc(100%-80px)]">           <button 
-            onClick={() => router.push("/dashboard")} 
-            className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5 text-left transition-all"
-          >
-            <LayoutDashboard size={18} />
-            <span className="text-sm">Dashboard</span>
-          </button>
+        <nav className="flex-1 px-4 py-6 space-y-1.5 flex flex-col h-[calc(100%-80px)]">           <button
+          onClick={() => router.push("/dashboard")}
+          className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5 text-left transition-all"
+        >
+          <LayoutDashboard size={18} />
+          <span className="text-sm">Dashboard</span>
+        </button>
 
-          <button 
-            onClick={() => router.push("/analytics")} 
+          <button
+            onClick={() => router.push("/analytics")}
             className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5 text-left transition-all"
           >
             <PieChart size={18} />
             <span className="text-sm">Analytics</span>
           </button>
 
-          <button 
-            onClick={() => router.push("/transactions")} 
+          <button
+            onClick={() => router.push("/transactions")}
             className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl bg-white text-black font-semibold shadow-lg shadow-black/20 text-left relative"
           >
             <Receipt size={18} className="text-black" />
@@ -139,31 +145,31 @@ export default function TransactionsPage() {
             <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-black" />
           </button>
 
-          <button 
-            onClick={() => router.push("/settings")} 
+          <button
+            onClick={() => router.push("/settings")}
             className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5 text-left transition-all"
           >
             <Settings size={18} />
             <span className="text-sm">Settings</span>
           </button>
           {/* LOWER PROFILE BOX (BLACKISH-GREY WITH EMERALD ACCENTS) */}
-<button
-  onClick={() => router.push("/settings")}
-  className="w-full mt-auto flex items-center gap-3 p-3 rounded-xl bg-[#161618] hover:bg-[#1c1c1e] border border-[#04d292]/30 hover:border-[#04d292]/60 transition-all text-left group active:scale-95 shadow-md shadow-[#04d292]/5"
->
-  {/* Emerald tinted avatar icon */}
-  <div className="w-9 h-9 rounded-xl bg-[#04d292]/10 border border-[#04d292]/30 group-hover:border-[#04d292]/50 transition-colors flex items-center justify-center font-bold text-[#04d292] text-sm shrink-0 shadow-sm">
-    {user?.name ? user.name[0].toUpperCase() : "U"}
-  </div>
-  <div className="truncate flex-1">
-    <p className="text-xs font-bold text-neutral-200 leading-tight group-hover:text-white transition-colors truncate">
-      {user?.name || "User Profile"}
-    </p>
-    <p className="text-[10px] text-[#04d292] font-medium opacity-80 truncate mt-0.5">
-      {user?.email || "Premium Member"}
-    </p>
-  </div>
-</button>
+          <button
+            onClick={() => router.push("/settings")}
+            className="w-full mt-auto flex items-center gap-3 p-3 rounded-xl bg-[#161618] hover:bg-[#1c1c1e] border border-[#04d292]/30 hover:border-[#04d292]/60 transition-all text-left group active:scale-95 shadow-md shadow-[#04d292]/5"
+          >
+            {/* Emerald tinted avatar icon */}
+            <div className="w-9 h-9 rounded-xl bg-[#04d292]/10 border border-[#04d292]/30 group-hover:border-[#04d292]/50 transition-colors flex items-center justify-center font-bold text-[#04d292] text-sm shrink-0 shadow-sm">
+              {user?.name ? user.name[0].toUpperCase() : "U"}
+            </div>
+            <div className="truncate flex-1">
+              <p className="text-xs font-bold text-neutral-200 leading-tight group-hover:text-white transition-colors truncate">
+                {user?.name || "User Profile"}
+              </p>
+              <p className="text-[10px] text-[#04d292] font-medium opacity-80 truncate mt-0.5">
+                {user?.email || "Premium Member"}
+              </p>
+            </div>
+          </button>
         </nav>
       </aside>
 
@@ -234,11 +240,10 @@ export default function TransactionsPage() {
                       </td>
 
                       <td
-                        className={`px-8 py-5 text-right font-black text-base ${
-                          txn.type === "Income"
-                            ? "text-emerald-400"
-                            : "text-rose-400"
-                        }`}
+                        className={`px-8 py-5 text-right font-black text-base ${txn.type === "Income"
+                          ? "text-emerald-400"
+                          : "text-rose-400"
+                          }`}
                       >
                         {txn.amount}
                       </td>
@@ -246,6 +251,17 @@ export default function TransactionsPage() {
                   ))}
                 </tbody>
               </table>
+              
+              {!showAll && transactions.length === 10 && (
+                <div className="flex justify-center py-6">
+                  <button
+                    onClick={() => setShowAll(true)}
+                    className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
+                  >
+                    Show All Transactions
+                  </button>
+                </div>
+              )}
 
               {transactions.length === 0 && (
                 <div className="text-center py-12 text-neutral-500 border border-dashed border-neutral-800 rounded-b-2xl">
