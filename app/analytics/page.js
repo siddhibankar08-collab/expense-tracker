@@ -5,12 +5,10 @@ import {
   PieChart,
   Settings,
   Bell,
-  Search,
   TrendingUp,
   ArrowDownRight,
   ArrowUpRight,
   Wallet,
-  Receipt,
 } from "lucide-react";
 
 import { supabase } from "@/lib/supabaseClient";
@@ -50,10 +48,7 @@ export default function AnalyticsPage() {
         .from("expense")
         .select("*")
         .eq("user_id", authData.user.id)
-        .order("date", { ascending: false })
-
-      console.log("EXPENSE DATA:", expenseData);
-      console.log("SUPABASE ERROR:", error);
+        .order("generated_date", { ascending: false });
 
       setExpenses(expenseData || []);
       setLoading(false);
@@ -75,37 +70,21 @@ export default function AnalyticsPage() {
     );
   }
 
+  const credit = Number(latest?.total_credit || 0);
+  const debit = Number(latest?.total_debit || 0);
+  const balance = Number(latest?.remaining_balance || 0);
+  const dues = Number(latest?.total_dues || 0);
 
-  const greeting =
-    new Date().getHours() < 12
-      ? "Good Morning"
-      : new Date().getHours() < 18
-        ? "Good Afternoon"
-        : "Good Evening";
-
-
-  //  ADD THIS HERE (IMPORTANT SECTION)
-
-  // 1. CREDIT TOTAL
-  const credit = expenses
-  .reduce((sum, e) => sum + Number(e.credit_amount || 0), 0);
-
-  // 2. DEBIT TOTAL
-  const debit = expenses
-  .reduce((sum, e) => sum + Number(e.debit_amount || 0), 0);
-
-  // 3. BALANCE
-  const balance = credit - debit;
-
-  // 4. TOTAL TRANSACTIONS
-  const totalTransactions = expenses.length;
-
-
-  // 5. RATIOS
   const total = credit + debit || 1;
-
   const creditPercent = Math.round((credit / total) * 100);
   const debitPercent = Math.round((debit / total) * 100);
+
+  const healthScore =
+    credit + debit > 0
+      ? Math.min(100, Math.round((credit / (credit + debit)) * 100))
+      : 0;
+
+  const isHealthy = credit >= debit;
 
   const healthScore =
   credit + debit > 0
@@ -140,7 +119,7 @@ const isHealthy = credit >= debit;
           </div>
         </div>
 
-        {/* Updated Navigation Syncing All Three App Paths */}
+        {/* Navigation */}
         <nav className="flex-1 px-4 py-6 space-y-1.5">
           {[
             { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -170,31 +149,15 @@ const isHealthy = credit >= debit;
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-xl font-bold text-white">
-                {greeting},{" "}
-                {user?.name ||
-                  user?.email?.split("@")[0]}{" "}
-                👋
+                {greeting}, {user?.name || user?.email?.split("@")[0]} 👋
               </h1>
-
               <p className="text-neutral-400 text-xs mt-0.5">
                 Financial analytics and insights.
               </p>
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center bg-[#121214] border border-neutral-800 rounded-xl px-3 py-2">
-                <Search
-                  size={16}
-                  className="text-neutral-500"
-                />
-
-                <input
-                  placeholder="Search reports..."
-                  className="bg-transparent outline-none ml-2 text-xs w-56 text-neutral-200"
-                />
-              </div>
-
-              <button className="p-2.5 bg-[#121214] border border-neutral-800 rounded-xl">
+              <button className="p-2.5 bg-[#121214] border border-neutral-800 rounded-xl text-neutral-400 hover:text-white transition-colors">
                 <Bell size={18} />
               </button>
             </div>
@@ -218,7 +181,7 @@ const isHealthy = credit >= debit;
               <TrendingUp size={14} />
               <span className="text-xs text-emerald-400">
                 Generated on{" "}
-                {expenses.length > 0 ? expenses[0].generated_date : "-"}
+                {latest?.generated_date || "-"}
               </span>
             </div>
 
@@ -246,8 +209,10 @@ const isHealthy = credit >= debit;
                   Status
                 </p>
                 <h3 className="text-3xl font-bold">
-  {isHealthy ? "Healthy" : "Attention"}
-</h3>
+                  {balance > dues
+                    ? "Healthy"
+                    : "Attention"}
+                </h3>
               </div>
             </div>
           </div>
@@ -260,13 +225,9 @@ const isHealthy = credit >= debit;
                   Total Credit
                 </p>
                 <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-400">
-                  <ArrowDownRight
-                    size={16}
-                    className="rotate-180"
-                  />
+                  <ArrowDownRight size={16} className="rotate-180" />
                 </div>
               </div>
-
               <h3 className="text-2xl font-bold">
                 ₹{credit.toLocaleString()}
               </h3>
@@ -277,12 +238,10 @@ const isHealthy = credit >= debit;
                 <p className="text-xs uppercase text-neutral-400">
                   Total Debit
                 </p>
-
                 <div className="p-2 bg-rose-500/10 rounded-xl text-rose-400">
                   <ArrowUpRight size={16} />
                 </div>
               </div>
-
               <h3 className="text-2xl font-bold">
                 ₹{debit.toLocaleString()}
               </h3>
@@ -293,92 +252,134 @@ const isHealthy = credit >= debit;
                 <p className="text-xs uppercase text-neutral-400">
                   Balance
                 </p>
-
                 <div className="p-2 bg-white/5 rounded-xl">
                   <Wallet size={16} />
                 </div>
               </div>
-
               <h3 className="text-2xl font-bold">
                 ₹{balance.toLocaleString()}
               </h3>
-            </div> {/* CLOSE KPI GRID */}
+            </div>
 
-           
+            <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800">
+              <div className="flex justify-between mb-3">
+                <p className="text-xs uppercase text-neutral-400">
+                  Total Dues
+                </p>
 
-          {/* BALANCE HEALTH */}
+                <div className="p-2 bg-orange-500/10 rounded-xl text-orange-400">
+                  <Receipt size={16} />
+                </div>
+              </div>
+
+              <h3 className="text-2xl font-bold">
+                ₹{dues.toLocaleString()}
+              </h3>
+            </div>
+          </div>
+
+          {/* SIDE-BY-SIDE METRICS BLOCK */}
           <div className="grid lg:grid-cols-3 gap-6">
-</div>
-  {/* LEFT CARD */}
-  <div className="lg:col-span-2 bg-[#121214] rounded-2xl p-6 border border-neutral-800">
-    <h2 className="font-bold text-white mb-6">
-      Financial Overview
-    </h2>
+            <div className="lg:col-span-2 bg-[#121214] rounded-2xl p-6 border border-neutral-800">
+              <h2 className="font-bold text-white mb-6">
+                Financial Overview
+              </h2>
 
-    <div className="space-y-5">
-      {[ 
-        { label: "Credit", value: credit, color: "bg-emerald-400" },
-        { label: "Debit", value: debit, color: "bg-rose-400" },
-        { label: "Balance", value: balance, color: "bg-white" },
-      ].map((item) => (
-        <div key={item.label}>
-          <div className="flex justify-between text-sm mb-2">
-            <span>{item.label}</span>
-            <span>₹{item.value.toLocaleString()}</span>
+              <div className="space-y-5">
+                {[
+                  {
+                    label: "Credit",
+                    value: credit,
+                    color: "bg-emerald-400",
+                  },
+                  {
+                    label: "Debit",
+                    value: debit,
+                    color: "bg-rose-400",
+                  },
+                  {
+                    label: "Balance",
+                    value: balance,
+                    color: "bg-white",
+                  },
+                  {
+                    label: "Dues",
+                    value: dues,
+                    color: "bg-orange-400",
+                  },
+                ].map((item) => (
+                  <div key={item.label}>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span>{item.label}</span>
+                      <span>
+                        ₹{item.value.toLocaleString()}
+                      </span>
+                    </div>
+
+                    <div className="h-3 bg-neutral-800 rounded-full overflow-hidden">
+                      <div
+                        className={`${item.color} h-full`}
+                        style={{
+                          width: `${Math.min(
+                            (item.value /
+                              Math.max(
+                                credit,
+                                debit,
+                                balance,
+                                dues,
+                                1
+                              )) *
+                              100,
+                            100
+                          )}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-[#121214] rounded-2xl p-6 border border-neutral-800">
+              <h2 className="font-bold mb-5">
+                Balance Health
+              </h2>
+
+              <div className="text-5xl font-black">
+                {balance > dues ? "82%" : "45%"}
+              </div>
+
+              <div className="mt-5 w-full bg-neutral-800 h-2 rounded-full overflow-hidden">
+                <div
+                  className="bg-white h-full"
+                  style={{
+                    width:
+                      balance > dues ? "82%" : "45%",
+                  }}
+                />
+              </div>
+
+              <p className="text-neutral-400 text-sm mt-4">
+                {balance > dues
+                  ? "Strong liquidity position"
+                  : "Monitor outstanding dues"}
+              </p>
+            </div>
           </div>
-
-          <div className="h-3 bg-neutral-800 rounded-full overflow-hidden">
-            <div
-              className={item.color}
-              style={{
-                width: `${Math.min(
-                  (item.value / Math.max(credit, debit, balance, 1)) * 100,
-                  100
-                )}%`,
-              }}
-            />
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-
-  {/* RIGHT CARD */}
-  <div className="bg-[#121214] rounded-2xl p-6 border border-neutral-800">
-    <h2 className="font-bold mb-5">Balance Health</h2>
-
-    <div className="text-5xl font-black">
-      {healthScore}%
-    </div>
-
-    <div className="mt-5 w-full bg-neutral-800 h-2 rounded-full overflow-hidden">
-      <div
-        className="bg-white h-full"
-        style={{ width: `${healthScore}%` }}
-      />
-    </div>
-
-    <p className="text-neutral-400 text-sm mt-4">
-      {balance >= 0
-        ? "Strong liquidity position"
-        : "Monitor spending pattern"}
-    </p>
-  </div>
-
-</div>
 
           {/* HISTORY TABLE */}
           <div className="bg-[#121214] rounded-2xl p-6 border border-neutral-800">
-            <h2 className="font-bold text-white">
-              Analytics History
-            </h2>
+            <div className="mb-5">
+              <h2 className="font-bold text-white text-lg">
+                Analytics History
+              </h2>
+              <p className="text-xs text-neutral-400 mt-1">
+                Historical financial reports overview
+              </p>
+            </div>
 
-            <p className="text-xs text-neutral-400 mt-1 mb-5">
-              Historical financial reports
-            </p>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="overflow-x-auto rounded-xl border border-neutral-800/60">
+              <table className="w-full text-sm border-collapse">
                 <thead>
                   <tr className="border-b border-neutral-800 text-neutral-400">
                     <th className="text-left py-3">
@@ -393,36 +394,57 @@ const isHealthy = credit >= debit;
                     <th className="text-left py-3">
                       Balance
                     </th>
+                    <th className="text-left py-3">
+                      Dues
+                    </th>
                   </tr>
                 </thead>
 
                 <tbody>
-                  {expenses.map((row) => (
-                    <tr key={row.expense_id} className="border-b border-neutral-800">
-
+                  {analytics.map((row) => (
+                    <tr
+                      key={row.analytics_id}
+                      className="border-b border-neutral-800"
+                    >
                       <td className="py-4">
-                        {row.created_at}
+                        {row.generated_date}
                       </td>
 
                       <td className="text-emerald-400 font-semibold">
-                        ₹{Number(row.credit_amount || 0).toLocaleString()}
+                        ₹
+                        {Number(
+                          row.total_credit
+                        ).toLocaleString()}
                       </td>
 
                       <td className="text-rose-400 font-semibold">
-                        ₹{Number(row.debit_amount || 0).toLocaleString()}
+                        ₹
+                        {Number(
+                          row.total_debit
+                        ).toLocaleString()}
                       </td>
 
                       <td className="font-semibold">
-                        ₹{Number(row.balance || 0).toLocaleString()}
+                        ₹
+                        {Number(
+                          row.remaining_balance
+                        ).toLocaleString()}
+                      </td>
+
+                      <td className="text-orange-400 font-semibold">
+                        ₹
+                        {Number(
+                          row.total_dues
+                        ).toLocaleString()}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-               
-              {expenses.length === 0 && (
+
+              {analytics.length === 0 && (
                 <div className="text-center py-10 text-neutral-500">
-                  No expenses found.
+                  No analytics records found.
                 </div>
               )}
             </div>

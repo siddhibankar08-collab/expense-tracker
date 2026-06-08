@@ -4,12 +4,6 @@ import {
   LayoutDashboard,
   PieChart,
   Settings,
-  Bell,
-  Shield,
-  User,
-  Wallet,
-  Save,
-  LogOut,
   Trash2,
 } from "lucide-react";
 
@@ -26,16 +20,9 @@ export default function SettingsPage() {
 
   // Core personal finance settings
   const [name, setName] = useState("");
-  const [threshold, setThreshold] = useState("5000");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
-  // Email notification toggles state for personal tracking
-  const [monthlySummary, setMonthlySummary] = useState(true);
-  const [expenseThresholdAlert, setExpenseThresholdAlert] = useState(true);
-  const [dailyReport, setDailyReport] = useState(false);
-  const [weeklyReport, setWeeklyReport] = useState(true);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -55,41 +42,26 @@ export default function SettingsPage() {
       setUser(profile);
       setName(profile?.name || "");
       
-      if (profile?.notification_preferences) {
-        setMonthlySummary(profile.notification_preferences.monthlySummary ?? true);
-        setExpenseThresholdAlert(profile.notification_preferences.expenseThresholdAlert ?? true);
-        setDailyReport(profile.notification_preferences.dailyReport ?? false);
-        setWeeklyReport(profile.notification_preferences.weeklyReport ?? true);
-        setThreshold(profile.notification_preferences.threshold ?? "5000");
-      }
-      
       setLoading(false);
     };
 
     loadUser();
   }, [router]);
 
-  const saveAllPreferences = async () => {
+  const saveProfileChanges = async () => {
     try {
       const { error } = await supabase
         .from("users")
         .update({ 
           name,
-          notification_preferences: {
-            monthlySummary,
-            expenseThresholdAlert,
-            dailyReport,
-            weeklyReport,
-            threshold
-          }
         })
         .eq("user_id", user.user_id);
 
       if (error) throw error;
-      alert("Preferences successfully updated!");
+      alert("Profile successfully updated!");
     } catch (err) {
       console.error(err);
-      alert("Failed to save configuration settings.");
+      alert("Failed to save profile changes.");
     }
   };
 
@@ -218,110 +190,11 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {/* Button changed to solid white */}
             <button
-              onClick={saveAllPreferences}
+              onClick={saveProfileChanges}
               className="mt-6 flex items-center gap-2 px-5 py-2.5 bg-white text-black hover:bg-neutral-200 transition-all rounded-xl font-semibold text-sm active:scale-95 shadow-md shadow-black/10"
             >
               Save Changes
-            </button>
-          </div>
-
-          {/* EMAIL NOTIFICATIONS CARD */}
-          <div className="bg-[#121214] rounded-2xl border border-neutral-800 p-6">
-            <div className="mb-6">
-              <h2 className="font-bold text-white text-lg">Email Notifications</h2>
-              <p className="text-neutral-400 text-xs mt-0.5">Choose what alerts you receive</p>
-            </div>
-
-            <div className="divide-y divide-neutral-800 space-y-5">
-              {/* Toggle 1 */}
-              <div className="flex justify-between items-start pt-1">
-                <div className="pr-4">
-                  <h4 className="text-sm font-medium text-neutral-200">Send monthly summary email</h4>
-                  <p className="text-neutral-400 text-xs mt-0.5">Receive a monthly breakdown of income versus spending</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setMonthlySummary(!monthlySummary)}
-                  className={`w-11 h-6 shrink-0 rounded-full transition-colors relative duration-200 focus:outline-none ${
-                    monthlySummary ? "bg-[#04d292]" : "bg-neutral-800"
-                  }`}
-                >
-                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 ${monthlySummary ? "translate-x-5" : "translate-x-0"}`} />
-                </button>
-              </div>
-
-              {/* Toggle 2 */}
-              <div className="space-y-4 pt-5">
-                <div className="flex justify-between items-start">
-                  <div className="pr-4">
-                    <h4 className="text-sm font-medium text-neutral-200">Alert when a single expense exceeds threshold</h4>
-                    <p className="text-neutral-400 text-xs mt-0.5">Get notified instantly when any logged transaction crosses your set limit</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setExpenseThresholdAlert(!expenseThresholdAlert)}
-                    className={`w-11 h-6 shrink-0 rounded-full transition-colors relative duration-200 focus:outline-none ${
-                      expenseThresholdAlert ? "bg-[#04d292]" : "bg-neutral-800"
-                    }`}
-                  >
-                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 ${expenseThresholdAlert ? "translate-x-5" : "translate-x-0"}`} />
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-3 pl-0">
-                  <span className="text-xs text-neutral-300 font-medium">Threshold (₹)</span>
-                  <input
-                    type="number"
-                    value={threshold}
-                    onChange={(e) => setThreshold(e.target.value)}
-                    className="w-28 bg-[#1C1C1E] border border-neutral-800 rounded-xl px-3 py-1.5 text-xs text-neutral-200 focus:outline-none focus:border-neutral-700"
-                  />
-                </div>
-              </div>
-
-              {/* Toggle 3 */}
-              <div className="flex justify-between items-start pt-5">
-                <div className="pr-4">
-                  <h4 className="text-sm font-medium text-neutral-200">Receive daily report email</h4>
-                  <p className="text-neutral-400 text-xs mt-0.5">Daily personal transaction and budget track summary</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setDailyReport(!dailyReport)}
-                  className={`w-11 h-6 shrink-0 rounded-full transition-colors relative duration-200 focus:outline-none ${
-                    dailyReport ? "bg-[#04d292]" : "bg-neutral-800"
-                  }`}
-                >
-                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 ${dailyReport ? "translate-x-5" : "translate-x-0"}`} />
-                </button>
-              </div>
-
-              {/* Toggle 4 */}
-              <div className="flex justify-between items-start pt-5">
-                <div className="pr-4">
-                  <h4 className="text-sm font-medium text-neutral-200">Receive weekly report email</h4>
-                  <p className="text-neutral-400 text-xs mt-0.5">Weekly personal cashflow metrics and savings progress</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setWeeklyReport(!weeklyReport)}
-                  className={`w-11 h-6 shrink-0 rounded-full transition-colors relative duration-200 focus:outline-none ${
-                    weeklyReport ? "bg-[#04d292]" : "bg-neutral-800"
-                  }`}
-                >
-                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 ${weeklyReport ? "translate-x-5" : "translate-x-0"}`} />
-                </button>
-              </div>
-            </div>
-
-            {/* Button changed to solid white */}
-            <button 
-              onClick={saveAllPreferences}
-              className="mt-6 flex items-center gap-2 px-5 py-2.5 bg-white text-black hover:bg-neutral-200 transition-all rounded-xl font-semibold text-sm active:scale-95 shadow-md shadow-black/10"
-            >
-              Save Preferences
             </button>
           </div>
 
@@ -369,7 +242,6 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {/* Button changed to solid white */}
             <button className="mt-6 px-5 py-2.5 bg-white text-black hover:bg-neutral-200 transition-all text-sm font-semibold rounded-xl active:scale-95 shadow-md shadow-black/10">
               Update Password
             </button>
