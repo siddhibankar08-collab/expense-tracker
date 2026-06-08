@@ -400,12 +400,22 @@ export default function DashboardPage() {
               {formError && <p className="text-xs text-rose-400 font-medium bg-rose-500/5 border border-rose-500/10 p-3 rounded-xl">{formError}</p>}
 
               <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-black font-black py-3 rounded-xl text-sm transition-colors uppercase tracking-wider mt-2"
-              >
-                {isSubmitting ? "Processing..." : "Save Income"}
-              </button>
+  type="submit"
+  disabled={isSubmitting}
+  className={`w-full font-black py-3 rounded-xl text-sm transition-all duration-200 active:scale-95 uppercase tracking-wider mt-2 shadow-md ${
+    isSubmitting
+      ? "opacity-50 cursor-not-allowed bg-neutral-700 text-neutral-400"
+      : transactionType === "Income"
+      ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/10"
+      : "bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/10"
+  }`}
+>
+  {isSubmitting 
+    ? "Processing..." 
+    : transactionType === "Income" 
+    ? "Save Income" 
+    : "Save Expense"}
+</button>
             </form>
           </div>
         </div>
