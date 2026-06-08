@@ -174,8 +174,14 @@ export default function DashboardPage() {
         <div className="p-5 border-b border-neutral-800">
           <div className="flex items-center gap-3">
             <div className="p-1.5 bg-emerald-500/5 backdrop-blur-sm rounded-xl border border-emerald-500/20 shadow-sm flex items-center justify-center shrink-0">
-              <Image src="/images/spendwiselogo.png" alt="Logo" width={36} height={36} className="object-contain invert sepia-emerald" />
-            </div>
+                          <Image
+                            src="/images/spendwiselogo.png"
+                            alt="SpendWise Logo"
+                            width={36}
+                            height={36}
+                            className="object-contain invert sepia-emerald hue-rotate-60 brightness-125"
+                          />
+                        </div>
             <div>
               <h1 className="font-bold text-lg text-[#04d292] tracking-tight leading-tight">SpendWise</h1>
               <p className="text-[10px] font-semibold text-neutral-500 tracking-wider uppercase">Personal Finance</p>
@@ -183,8 +189,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <nav className="flex-1 px-4 py-6 space-y-1.5">
-          <button onClick={() => router.push("/dashboard")} className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl bg-white text-black font-semibold shadow-lg shadow-black/20 text-left relative">
+<nav className="flex-1 px-4 py-6 space-y-1.5 flex flex-col h-[calc(100%-80px)]">          <button onClick={() => router.push("/dashboard")} className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl bg-white text-black font-semibold shadow-lg shadow-black/20 text-left relative">
             <LayoutDashboard size={18} />
             <span className="text-sm">Dashboard</span>
             <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-black" />
@@ -201,8 +206,27 @@ export default function DashboardPage() {
             <Settings size={18} />
             <span className="text-sm">Settings</span>
           </button>
+          {/* LOWER PROFILE BOX (BLACKISH-GREY WITH EMERALD ACCENTS) */}
+<button
+  onClick={() => router.push("/settings")}
+  className="w-full mt-auto flex items-center gap-3 p-3 rounded-xl bg-[#161618] hover:bg-[#1c1c1e] border border-[#04d292]/30 hover:border-[#04d292]/60 transition-all text-left group active:scale-95 shadow-md shadow-[#04d292]/5"
+>
+  {/* Emerald tinted avatar icon */}
+  <div className="w-9 h-9 rounded-xl bg-[#04d292]/10 border border-[#04d292]/30 group-hover:border-[#04d292]/50 transition-colors flex items-center justify-center font-bold text-[#04d292] text-sm shrink-0 shadow-sm">
+    {user?.name ? user.name[0].toUpperCase() : "U"}
+  </div>
+  <div className="truncate flex-1">
+    <p className="text-xs font-bold text-neutral-200 leading-tight group-hover:text-white transition-colors truncate">
+      {user?.name || "User Profile"}
+    </p>
+    <p className="text-[10px] text-[#04d292] font-medium opacity-80 truncate mt-0.5">
+      {user?.email || "Premium Member"}
+    </p>
+  </div>
+</button>
         </nav>
       </aside>
+      
 
       {/* MAIN CONTAINER */}
       <main className="flex-1 lg:ml-64 min-h-screen flex flex-col">
