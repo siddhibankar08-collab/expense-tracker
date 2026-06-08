@@ -33,7 +33,7 @@ export default function AnalyticsPage() {
         return;
       }
 
-      // USER DATA - Strictly locked to authenticated user
+      // USER DATA
       const { data: userData } = await supabase
         .from("users")
         .select("*")
@@ -42,15 +42,15 @@ export default function AnalyticsPage() {
 
       setUser(userData);
 
-      // EXPENSE DATA - Strictly locked to authenticated user
+      // EXPENSE DATA
       const { data: expenseData, error } = await supabase
         .from("expense")
         .select("*")
         .eq("user_id", authData.user.id)
         .order("date", { ascending: false });
 
-      console.log("EXPENSE DATA:", expenseData);
-      console.log("SUPABASE ERROR:", error);
+      console.log("ANALYTICS DATA LOG:", expenseData);
+      console.log("SUPABASE FETCH ERROR:", error);
 
       setExpenses(expenseData || []);
       setLoading(false);
@@ -64,9 +64,7 @@ export default function AnalyticsPage() {
       <div className="min-h-screen flex items-center justify-center bg-[#0A0A0C]">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-4 border-neutral-200 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-neutral-400">
-            Loading analytics...
-          </p>
+          <p className="text-sm text-neutral-400">Loading metrics...</p>
         </div>
       </div>
     );
@@ -79,9 +77,18 @@ export default function AnalyticsPage() {
         ? "Good Afternoon"
         : "Good Evening";
 
-  // FINANCIAL COMPOSITIONS
-  const credit = expenses.reduce((sum, e) => sum + Number(e.credit_amount || 0), 0);
-  const debit = expenses.reduce((sum, e) => sum + Number(e.debit_amount || 0), 0);
+
+  //  ADD THIS HERE (IMPORTANT SECTION)
+
+  // 1. CREDIT TOTAL
+  const credit = expenses
+  .reduce((sum, e) => sum + Number(e.credit_amount || 0), 0);
+
+  // 2. DEBIT TOTAL
+  const debit = expenses
+  .reduce((sum, e) => sum + Number(e.debit_amount || 0), 0);
+
+  // 3. BALANCE
   const balance = credit - debit;
 
   // RATIOS
@@ -123,6 +130,7 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
+        {/* Updated Navigation Syncing All Three App Paths */}
         <nav className="flex-1 px-4 py-6 space-y-1.5">
           {[
             { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -169,7 +177,7 @@ export default function AnalyticsPage() {
         </header>
 
         <div className="p-8 max-w-7xl mx-auto space-y-6">
-          {/* HERO HEALTH STATUS CONTAINER */}
+          {/* HERO */}
           <div className="relative overflow-hidden bg-gradient-to-br from-[#1C1C1E] via-[#121214] to-[#0A0A0C] rounded-2xl p-8 shadow-xl border border-neutral-800">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,#ffffff05_0%,transparent_60%)]" />
 
@@ -204,7 +212,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          {/* KPI GRID */}
+          {/* KPI */}
           <div className="grid md:grid-cols-3 gap-5">
             <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800">
               <div className="flex justify-between mb-3">
@@ -237,56 +245,68 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          {/* BALANCE HEALTH & DISTRIBUTION SECTION */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* LEFT CARD - FINANCIAL OVERVIEW */}
-            <div className="lg:col-span-2 bg-[#121214] rounded-2xl p-6 border border-neutral-800">
-              <h2 className="font-bold text-white mb-6">Financial Overview</h2>
-              <div className="space-y-5">
-                {[
-                  { label: "Credit", value: credit, color: "bg-emerald-400" },
-                  { label: "Debit", value: debit, color: "bg-rose-400" },
-                  { label: "Balance", value: balance, color: "bg-white" },
-                ].map((item) => (
-                  <div key={item.label}>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-neutral-300 font-medium">{item.label}</span>
-                      <span className="font-semibold text-neutral-100">₹{item.value.toLocaleString("en-IN")}</span>
-                    </div>
-                    {/* Fixed background colors to fit dashboard system theme standards */}
-                    <div className="h-3 bg-neutral-850 border border-neutral-800 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${item.color}`}
-                        style={{
-                          width: `${Math.min(
-                            (Math.abs(item.value) / Math.max(credit, debit, Math.abs(balance), 1)) * 100,
-                            100
-                          )}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          {/* BALANCE HEALTH */}
+          <div className="grid lg:grid-cols-3 gap-6">
+</div>
+  {/* LEFT CARD */}
+  <div className="lg:col-span-2 bg-[#121214] rounded-2xl p-6 border border-neutral-800">
+    <h2 className="font-bold text-white mb-6">
+      Financial Overview
+    </h2>
 
-            {/* RIGHT CARD - PROGRESS TRACKER HEALTH BAR */}
-            <div className="bg-[#121214] rounded-2xl p-6 border border-neutral-800">
-              <h2 className="font-bold mb-5">Balance Health</h2>
-              <div className="text-5xl font-black">{healthScore}%</div>
-              <div className="mt-5 w-full bg-neutral-800 h-2 rounded-full overflow-hidden">
-                <div
-                  className="bg-white h-full transition-all duration-500"
-                  style={{ width: `${healthScore}%` }}
-                />
-              </div>
-              <p className="text-neutral-400 text-sm mt-4">
-                {balance >= 0 ? "Strong liquidity position" : "Monitor spending pattern"}
-              </p>
-            </div>
+    <div className="space-y-5">
+      {[ 
+        { label: "Credit", value: credit, color: "bg-emerald-400" },
+        { label: "Debit", value: debit, color: "bg-rose-400" },
+        { label: "Balance", value: balance, color: "bg-white" },
+      ].map((item) => (
+        <div key={item.label}>
+          <div className="flex justify-between text-sm mb-2">
+            <span>{item.label}</span>
+            <span>₹{item.value.toLocaleString()}</span>
           </div>
 
-          {/* HISTORY DATA LOG TABLE */}
+          <div className="h-3 bg-neutral-800 rounded-full overflow-hidden">
+            <div
+              className={item.color}
+              style={{
+                width: `${Math.min(
+                  (item.value / Math.max(credit, debit, balance, 1)) * 100,
+                  100
+                )}%`,
+              }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  {/* RIGHT CARD */}
+  <div className="bg-[#121214] rounded-2xl p-6 border border-neutral-800">
+    <h2 className="font-bold mb-5">Balance Health</h2>
+
+    <div className="text-5xl font-black">
+      {healthScore}%
+    </div>
+
+    <div className="mt-5 w-full bg-neutral-800 h-2 rounded-full overflow-hidden">
+      <div
+        className="bg-white h-full"
+        style={{ width: `${healthScore}%` }}
+      />
+    </div>
+
+    <p className="text-neutral-400 text-sm mt-4">
+      {balance >= 0
+        ? "Strong liquidity position"
+        : "Monitor spending pattern"}
+    </p>
+  </div>
+
+</div>
+
+          {/* HISTORY TABLE */}
           <div className="bg-[#121214] rounded-2xl p-6 border border-neutral-800">
             <h2 className="font-bold text-white">Analytics History</h2>
             <p className="text-xs text-neutral-400 mt-1 mb-5">Historical financial reports</p>
@@ -294,27 +314,38 @@ export default function AnalyticsPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-neutral-800 text-neutral-400 text-left">
-                    <th className="py-3">Date</th>
-                    <th className="py-3">Description</th>
-                    <th className="py-3">Credit</th>
-                    <th className="py-3">Debit</th>
-                    <th className="py-3">Balance</th>
+                  <tr className="border-b border-neutral-800 text-neutral-400">
+                    <th className="text-left py-3">
+                      Date
+                    </th>
+                    <th className="text-left py-3">
+                      Credit
+                    </th>
+                    <th className="text-left py-3">
+                      Debit
+                    </th>
+                    <th className="text-left py-3">
+                      Balance
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {expenses.map((row, idx) => (
-                    <tr key={row.id || idx} className="border-b border-neutral-800 text-neutral-300">
-                      <td className="py-4 whitespace-nowrap">{row.date || "N/A"}</td>
-                      <td className="py-4 text-neutral-400 max-w-[180px] truncate">{row.description || "No description"}</td>
+                  {expenses.map((row) => (
+                    <tr key={row.expense_id} className="border-b border-neutral-800">
+
+                      <td className="py-4">
+                        {row.created_at}
+                      </td>
+
                       <td className="text-emerald-400 font-semibold">
                         {row.credit_amount ? `₹${Number(row.credit_amount).toLocaleString("en-IN")}` : "₹0"}
                       </td>
                       <td className="text-rose-400 font-semibold">
-                        {row.debit_amount ? `₹${Number(row.debit_amount).toLocaleString("en-IN")}` : "₹0"}
+                        ₹{Number(row.debit_amount || 0).toLocaleString()}
                       </td>
-                      <td className="font-semibold text-white">
-                        ₹{Number(row.balance || 0).toLocaleString("en-IN")}
+
+                      <td className="font-semibold">
+                        ₹{Number(row.balance || 0).toLocaleString()}
                       </td>
                     </tr>
                   ))}
@@ -322,8 +353,8 @@ export default function AnalyticsPage() {
               </table>
 
               {expenses.length === 0 && (
-                <div className="text-center py-12 text-neutral-500 border border-dashed border-neutral-800 rounded-xl mt-4">
-                  No analytics records found.
+                <div className="text-center py-10 text-neutral-500">
+                  No expenses found.
                 </div>
               )}
             </div>
