@@ -3,6 +3,7 @@
 import {
   LayoutDashboard,
   PieChart,
+  Receipt,
   Settings,
   Bell,
   Search,
@@ -118,8 +119,9 @@ export default function AnalyticsPage() {
         <nav className="flex-1 px-4 py-6 space-y-1.5">
           {[
             { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-            { icon: PieChart, label: "Analytics", path: "/analytics", active: true },
-            { icon: Settings, label: "Settings", path: "/settings" },
+  { icon: PieChart, label: "Analytics", path: "/analytics", active: true }, // Active here
+  { icon: Receipt, label: "Transactions", path: "/transaction" },          // Added this line
+  { icon: Settings, label: "Settings", path: "/settings" },
           ].map((item, idx) => (
             <button
               key={idx}

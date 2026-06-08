@@ -3,6 +3,7 @@
 import {
   LayoutDashboard,
   PieChart,
+  Receipt,
   Settings,
   Trash2,
 } from "lucide-react";
@@ -115,9 +116,10 @@ export default function SettingsPage() {
 
         <nav className="flex-1 px-4 py-6 space-y-1.5">
           {[
-            { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-            { icon: PieChart, label: "Analytics", path: "/analytics" },
-            { icon: Settings, label: "Settings", path: "/settings", active: true },
+           { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+  { icon: PieChart, label: "Analytics", path: "/analytics" },
+  { icon: Receipt, label: "Transactions", path: "/transaction" },         // Added this line
+  { icon: Settings, label: "Settings", path: "/settings", active: true }, // Active here
           ].map((item, idx) => (
             <button
               key={idx}
