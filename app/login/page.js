@@ -53,13 +53,11 @@ export default function LoginPage() {
         
         {/* Big Logo & Big Name Branding */}
         <div className="flex items-center gap-5 relative z-10 shrink-0">
-          <div className="p-2 bg-emerald-500/5 backdrop-blur-sm rounded-2xl border border-emerald-500/20 shadow-md">
-            <Image
-              src="/images/spendwiselogo.png"
+<div className="p-1.5 bg-black backdrop-blur-sm rounded-xl border border-[#04d292] shadow-sm flex items-center justify-center shrink-0">            <Image
+              src="/images/spend.png"
               alt="SpendWise Logo"
               width={65}
               height={65}
-              className="object-contain invert sepia-emerald hue-rotate-60 brightness-125"
             />
           </div>
           <div>

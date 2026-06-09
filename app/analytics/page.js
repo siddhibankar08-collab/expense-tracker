@@ -71,13 +71,6 @@ export default function AnalyticsPage() {
     );
   }
 
-  const greeting =
-    new Date().getHours() < 12
-      ? "Good Morning"
-      : new Date().getHours() < 18
-        ? "Good Afternoon"
-        : "Good Evening";
-
   // AGGREGATIONS
   const credit = expenses.reduce((sum, e) => sum + Number(e.credit_amount || 0), 0);
   const debit = expenses.reduce((sum, e) => sum + Number(e.debit_amount || 0), 0);
@@ -101,13 +94,11 @@ export default function AnalyticsPage() {
       <aside className="hidden lg:flex w-64 bg-gradient-to-br from-[#1C1C1E] via-[#121214] to-[#0A0A0C] flex-col fixed h-full border-r border-neutral-800 shadow-xl z-20">
         <div className="p-5 border-b border-neutral-800">
           <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-emerald-500/5 backdrop-blur-sm rounded-xl border border-emerald-500/20 shadow-sm flex items-center justify-center shrink-0">
-              <Image
-                src="/images/spendwiselogo.png"
+<div className="p-1.5 bg-black backdrop-blur-sm rounded-xl border border-[#04d292] shadow-sm flex items-center justify-center shrink-0">              <Image
+                src="/images/spend.png"
                 alt="SpendWise Logo"
                 width={36}
                 height={36}
-                className="object-contain invert sepia-emerald hue-rotate-60 brightness-125"
               />
             </div>
 
@@ -178,25 +169,7 @@ export default function AnalyticsPage() {
       {/* MAIN CONTAINER */}
       <main className="flex-1 lg:ml-64">
         {/* HEADER */}
-        <header className="bg-[#0A0A0C]/80 backdrop-blur-md border-b border-neutral-800 px-8 py-4 sticky top-0 z-10">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-xl font-bold text-white">
-                {greeting}, {user?.name || user?.email?.split("@")[0]} 👋
-              </h1>
-              <p className="text-neutral-400 text-xs mt-0.5">
-                Financial analytics and insights.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2C2C2E] to-[#121214] border border-neutral-700 flex items-center justify-center font-semibold text-white text-sm shadow-md select-none">
-                {user?.name ? user.name[0].toUpperCase() : "U"}
-              </div>
-            </div>
-          </div>
-        </header>
-
+        
         <div className="p-8 max-w-7xl mx-auto space-y-6">
           {/* HERO HEALTH OVERVIEW CARD */}
           <div className="relative overflow-hidden bg-gradient-to-br from-[#1C1C1E] via-[#121214] to-[#0A0A0C] rounded-2xl p-8 shadow-xl border border-neutral-800">

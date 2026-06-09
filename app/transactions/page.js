@@ -136,13 +136,12 @@ export default function TransactionsPage() {
       <aside className="hidden lg:flex w-64 bg-gradient-to-br from-[#1C1C1E] via-[#121214] to-[#0A0A0C] flex-col fixed h-full border-r border-neutral-800 shadow-xl z-20">
         <div className="p-5 border-b border-neutral-800">
           <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-emerald-500/5 backdrop-blur-sm rounded-xl border border-emerald-500/20 shadow-sm flex items-center justify-center shrink-0">
-              <Image
-                src="/images/spendwiselogo.png"
+<div className="p-1.5 bg-black backdrop-blur-sm rounded-xl border border-[#04d292] shadow-sm flex items-center justify-center shrink-0">              <Image
+                src="/images/spend.png"
                 alt="SpendWise Logo"
                 width={36}
                 height={36}
-                className="object-contain invert sepia-emerald hue-rotate-60 brightness-125"
+                
               />
             </div>
             <div>

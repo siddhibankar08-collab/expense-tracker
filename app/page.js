@@ -16,14 +16,12 @@ export default function Home() {
           {/* Left Side Brand Layout */}
           <div className="flex items-center gap-4 relative z-10">
             {/* Logo Container in Green */}
-            <div className="relative p-1.5 bg-emerald-500/5 backdrop-blur-sm rounded-xl border border-emerald-500/20 shadow-md group transition-all duration-300 hover:border-emerald-400">
-              <div className="absolute inset-0 bg-emerald-500/5 rounded-xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="p-1.5 bg-zinc-950 rounded-xl border border-[#04d292] shadow-sm flex items-center justify-center shrink-0">
               <Image
-                src="/images/spendwiselogo.png"
+                src="/images/spend.png"
                 alt="SpendWise Logo"
                 width={50}
                 height={50}
-                className="object-contain relative z-10 transform group-hover:scale-105 transition-transform duration-300 invert sepia-emerald hue-rotate-60 brightness-125"
               />
             </div>
             
@@ -60,11 +58,11 @@ export default function Home() {
           </div>
 
           <h1 className="text-3xl md:text-5xl lg:text-6xl font-black mt-8 text-center text-white tracking-tight leading-tight max-w-4xl">
-            Track every dollar across your
+            Track every transaction across 
           </h1>
 
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-neutral-500 mt-2 text-center tracking-tight leading-tight">
-            Life and Shops.
+             your Life
           </h1>
 
           <p className="text-center text-sm md:text-base mt-6 font-medium max-w-xl text-neutral-400 leading-relaxed">
