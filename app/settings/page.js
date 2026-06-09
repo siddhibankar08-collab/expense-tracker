@@ -66,6 +66,25 @@ export default function SettingsPage() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error(error);
+        alert("Failed to log out. Please try again.");
+        return;
+      }
+
+      // Optional: clear any local state if you want
+      // setUser(null);
+
+      router.push("/login");
+    } catch (err) {
+      console.error(err);
+      alert("Unexpected error while logging out.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center">
@@ -249,19 +268,22 @@ export default function SettingsPage() {
             </button>
           </div>
 
-          {/* DANGER ZONE */}
-          <div className="bg-rose-950/10 border border-rose-900/30 rounded-2xl p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <Trash2 size={18} className="text-rose-400" />
-              <h2 className="font-bold text-rose-400">Danger Zone</h2>
-            </div>
-            <p className="text-neutral-400 text-sm mb-4 leading-relaxed">
-              Permanently remove your account and all stored financial records.
-            </p>
-            <button className="px-5 py-3 bg-rose-600 hover:bg-rose-700 transition-all text-sm rounded-xl font-semibold text-white active:scale-95 shadow-md shadow-rose-900/20">
-              Delete Account
-            </button>
+        {/* DANGER ZONE */}
+        <div className="bg-rose-950/10 border border-rose-900/30 rounded-2xl p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <Trash2 size={18} className="text-rose-400" />
+            <h2 className="font-bold text-rose-400">Danger Zone</h2>
           </div>
+          <p className="text-neutral-400 text-sm mb-4 leading-relaxed">
+            Log out of your account on this device.
+          </p>
+          <button
+            onClick={handleLogout}
+            className="px-5 py-3 bg-rose-600 hover:bg-rose-700 transition-all text-sm rounded-xl font-semibold text-white active:scale-95 shadow-md shadow-rose-900/20"
+          >
+            Log out
+          </button>
+        </div>
         </div>
       </main>
     </div>
