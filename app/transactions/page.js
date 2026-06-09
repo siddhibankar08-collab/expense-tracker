@@ -52,20 +52,16 @@ export default function TransactionsPage() {
       const { data: dbRows, error } = await query;
 
       if (!error && dbRows) {
-        // Map database columns to the component structure safely
         const mappedRows = dbRows.map((row) => {
-          // Normalize type checking to handle case variants securely
           const normalizedType = String(row.type || "").toLowerCase();
           const isIncome = normalizedType === "credit" || normalizedType === "income";
 
-          // Fallback parsing logic to make sure amounts never show up as NaN
           const rawAmount = isIncome ? (row.credit_amount || 0) : (row.debit_amount || 0);
           const currentRunningBalance = row.balance || 0;
 
           return {
             id: row.expense_id || row.id,
             date: row.date || "N/A",
-            // We can show the running balance snapshot calculated by your submit form here
             balanceSnapshot: `₹${Number(currentRunningBalance).toLocaleString("en-IN")}`,
             purpose: row.description || (isIncome ? "Income Log" : "Expense Log"),
             category: row.category || (isIncome ? "Income" : "Expense"),
@@ -89,7 +85,6 @@ export default function TransactionsPage() {
       return;
     }
 
-    // 1. Build data array matching your table columns
     const data = transactions.map((tx) => ({
       Date: tx.date || "",
       "Running Balance": tx.balanceSnapshot || "",
@@ -97,12 +92,10 @@ export default function TransactionsPage() {
       "Credit/Debit": tx.amount || "",
     }));
 
-    // 2. Create worksheet and workbook
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
 
-    // 3. Generate XLSX file
     const wbout = XLSX.write(workbook, {
       bookType: "xlsx",
       type: "array",
@@ -112,7 +105,6 @@ export default function TransactionsPage() {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
 
-    // 4. Trigger download
     const url = URL.createObjectURL(blob);
     const timestamp = new Date().toISOString().slice(0, 10);
     const filename = `transactions-${timestamp}.xlsx`;
@@ -164,13 +156,14 @@ export default function TransactionsPage() {
           </div>
         </div>
 
-        <nav className="flex-1 px-4 py-6 space-y-1.5 flex flex-col h-[calc(100%-80px)]">           <button
-          onClick={() => router.push("/dashboard")}
-          className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5 text-left transition-all"
-        >
-          <LayoutDashboard size={18} />
-          <span className="text-sm">Dashboard</span>
-        </button>
+        <nav className="flex-1 px-4 py-6 space-y-1.5 flex flex-col h-[calc(100%-80px)]">
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="flex items-center gap-3.5 w-full px-4 py-3 rounded-xl text-neutral-400 hover:bg-white/5 text-left transition-all"
+          >
+            <LayoutDashboard size={18} />
+            <span className="text-sm">Dashboard</span>
+          </button>
 
           <button
             onClick={() => router.push("/analytics")}
@@ -196,12 +189,12 @@ export default function TransactionsPage() {
             <Settings size={18} />
             <span className="text-sm">Settings</span>
           </button>
-          {/* LOWER PROFILE BOX (BLACKISH-GREY WITH EMERALD ACCENTS) */}
+
+          {/* LOWER PROFILE BOX */}
           <button
             onClick={() => router.push("/settings")}
             className="w-full mt-auto flex items-center gap-3 p-3 rounded-xl bg-[#161618] hover:bg-[#1c1c1e] border border-[#04d292]/30 hover:border-[#04d292]/60 transition-all text-left group active:scale-95 shadow-md shadow-[#04d292]/5"
           >
-            {/* Emerald tinted avatar icon */}
             <div className="w-9 h-9 rounded-xl bg-[#04d292]/10 border border-[#04d292]/30 group-hover:border-[#04d292]/50 transition-colors flex items-center justify-center font-bold text-[#04d292] text-sm shrink-0 shadow-sm">
               {user?.name ? user.name[0].toUpperCase() : "U"}
             </div>
@@ -241,21 +234,25 @@ export default function TransactionsPage() {
 
         {/* CONTENT VIEW */}
         <div className="p-8 max-w-7xl w-full mx-auto space-y-6">
-          {/* TABLE CONTAINER */}
-          <div className="p-6 border-b border-neutral-800">
-          <div className="flex items-center justify-between">
-            <h2 className="font-bold text-white text-lg">
-              All Transactions
-            </h2>
-
+          
+          {/* ACTION BUTTON ZONE */}
+          <div className="flex justify-end px-6 -mt-3 mb-0">
             <button
               type="button"
               onClick={handleExportXlsx}
-              className="text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-neutral-700 text-neutral-300 hover:text-white hover:border-neutral-500 hover:bg-neutral-800/60 transition-all"
+              className="text-xs font-bold tracking-wide px-5 py-2.5 rounded-xl bg-[#161618] hover:bg-[#1c1c1e] border border-[#04d292]/30 hover:border-[#04d292]/60 shadow-md shadow-[#04d292]/5 transition-all active:scale-95 text-neutral-200 hover:text-white"
             >
               Export to Excel
             </button>
           </div>
+
+          {/* TABLE CONTAINER */}
+          <div className="p-6 border-b border-neutral-800">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold text-white text-lg">
+                All Transactions
+              </h2>
+            </div>
 
             <div className="overflow-x-auto">
               <table className="w-full table-fixed min-w-[700px]">
@@ -292,10 +289,11 @@ export default function TransactionsPage() {
                       </td>
 
                       <td
-                        className={`px-8 py-5 text-right font-black text-base ${txn.type === "Income"
-                          ? "text-emerald-400"
-                          : "text-rose-400"
-                          }`}
+                        className={`px-8 py-5 text-right font-black text-base ${
+                          txn.type === "Income"
+                            ? "text-emerald-400"
+                            : "text-rose-400"
+                        }`}
                       >
                         {txn.amount}
                       </td>
