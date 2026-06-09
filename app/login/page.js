@@ -52,65 +52,16 @@ export default function LoginPage() {
         <div className="absolute -bottom-20 -left-20 w-[500px] h-[500px] bg-emerald-500/[0.02] rounded-full blur-3xl pointer-events-none" />
         
         {/* Big Logo & Big Name Branding */}
-        <div className="flex items-center gap-5 relative z-10 shrink-0">
-          <div className="p-2 bg-emerald-500/5 backdrop-blur-sm rounded-2xl border border-emerald-500/20 shadow-md">
-            <Image
-              src="/images/spendwiselogo.png"
+          <Image
+              src="/images/login-illustration.jpg"
               alt="SpendWise Logo"
-              width={65}
-              height={65}
-              className="object-contain invert sepia-emerald hue-rotate-60 brightness-125"
+              fill
+              priority
             />
-          </div>
-          <div>
-            <h1 className="text-emerald-400 text-xl md:text-2xl font-black tracking-tight leading-none">
-                Spend<span className="text-emerald">Wise</span>
-              </h1>
-            <p className="text-neutral-500 text-[10px] font-bold tracking-widest uppercase mt-1.5">
-              Track Smarter • Spend Better
-            </p>
-          </div>
-        </div>
+          
 
         {/* Hero Title Block & Large Cards Container */}
-        <div className="my-auto max-w-xl relative z-10 space-y-8">
-          <div>
-            <h2 className="text-white text-3xl font-black leading-tight tracking-tight">
-              Money clarity <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-neutral-200 to-neutral-500">
-                for life and business.
-              </span>
-            </h2>
-            <p className="text-neutral-400 text-sm mt-3 leading-relaxed font-medium">
-              Track personal expenses and manage multiple shops in one place — with powerful analytics and smart reports.
-            </p>
-          </div>
-
-          {/* Upscaled Highlight Cards Grid */}
-          <div className="grid grid-cols-2 gap-5 max-w-[560px]">
-            {[
-              { icon: "💳", title: "Personal Tracking", desc: "Log daily spending data metrics and stay locked to your budget targets smoothly." },
-              { icon: "🏪", title: "Multi-Shop Setup", desc: "Centralize separate retail ledger metrics across all sub-outlets autonomously." },
-              { icon: "📈", title: "Smart Analytics", desc: "Unlock immediate visual profit trends, spending allocations, and breakdowns." },
-              { icon: "📊", title: "Unified Reports", desc: "Review your personal balances and enterprise distributions in a single anchor." }
-            ].map((item, index) => (
-              <div 
-                key={index} 
-                className="bg-[#121214] border border-neutral-800/80 rounded-2xl p-6 transition-all duration-300 hover:border-neutral-500 hover:-translate-y-1 group shadow-lg"
-              >
-                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-lg group-hover:bg-white group-hover:text-black transition-colors">
-                  {item.icon}
-                </div>
-                <h3 className="text-white text-sm font-bold mt-4 tracking-tight">
-                  {item.title}
-                </h3>
-                <p className="text-neutral-400 text-xs mt-1.5 leading-relaxed">
-                  {item.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
+        
 
         {/* Legal notice bottom */}
       </div>
@@ -245,10 +196,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <p className="text-center text-xs font-medium text-neutral-600 leading-relaxed pt-2">
-            By continuing, you agree to our <br />
-            <span className="underline cursor-pointer">Terms of Service</span> & <span className="underline cursor-pointer">Privacy Policy</span>.
-          </p>
+          
 
         </div>
       </div>
