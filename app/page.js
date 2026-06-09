@@ -6,7 +6,7 @@ export default function Home() {
     <div className="bg-[#0A0A0C] min-h-screen font-sans antialiased text-neutral-100">
       
       {/* Upper Layout Wrapper with subtle Greyish Tint */}
-      <div className="bg-[#171717] relative overflow-hidden pb-16">
+      <div className="bg-[#16161A] relative overflow-hidden pb-16">
         {/* Ambient radial lighting effect */}
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-white/[0.02] rounded-full blur-3xl pointer-events-none" />
 
@@ -30,7 +30,7 @@ export default function Home() {
             {/* Typography block in Green */}
             <div className="flex flex-col justify-center">
               <h1 className="text-emerald-400 text-xl md:text-2xl font-black tracking-tight leading-none">
-                Spend<span className="text-white">Wise</span>
+                Spend<span className="text-emerald">Wise</span>
               </h1>
               <div className="flex items-center gap-1.5 mt-1">
                 <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse"></span>

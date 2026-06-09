@@ -183,8 +183,10 @@ export default function DashboardPage() {
                           />
                         </div>
             <div>
-              <h1 className="font-bold text-lg text-[#04d292] tracking-tight leading-tight">SpendWise</h1>
-              <p className="text-[10px] font-semibold text-neutral-500 tracking-wider uppercase">Personal Finance</p>
+              <h1 className="text-emerald-400 text-xl md:text-1xl font-black tracking-tight leading-none">
+                Spend<span className="text-emerald">Wise</span>
+              </h1>
+              <p className="text-[10px] font-semibold text-neutral-500 tracking-wider uppercase mt-2">Personal Finance</p>
             </div>
           </div>
         </div>

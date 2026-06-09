@@ -63,9 +63,9 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <h1 className="text-400 text-[#10B24D] text-3xl font-black tracking-tight leading-none">
-              Spend<span className="text-[#10B24D]">Wise</span>
-            </h1>
+            <h1 className="text-emerald-400 text-xl md:text-2xl font-black tracking-tight leading-none">
+                Spend<span className="text-emerald">Wise</span>
+              </h1>
             <p className="text-neutral-500 text-[10px] font-bold tracking-widest uppercase mt-1.5">
               Track Smarter • Spend Better
             </p>
