@@ -24,7 +24,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [recentActivity, setRecentActivity] = useState([]);
   const [metrics, setMetrics] = useState({
-    balance: 20000, // Fallback start balance seen in your screenshot
+    balance: 0, 
     totalIncome: 0,
     totalExpenses: 0,
   });
@@ -62,7 +62,7 @@ export default function DashboardPage() {
         .from("expense")
         .select("*")
         .eq("user_id", authData.user.id)
-        .order("date", { ascending: false });
+        .order("created_at", { ascending: false });
 
       if (!error && expenseData) {
         setRecentActivity(expenseData);
@@ -74,7 +74,7 @@ export default function DashboardPage() {
         // If there are existing records, take the balance of the newest transaction
         const currentRunningBalance = expenseData.length > 0 
           ? Number(expenseData[0].balance || 0) 
-          : 20000;
+          : 0;
 
         setMetrics({
           balance: currentRunningBalance,
@@ -290,7 +290,7 @@ export default function DashboardPage() {
                 <Receipt className="text-neutral-400" size={16} />
               </div>
               <h3 className="text-2xl font-bold text-white mt-2">
-                Template: ₹{(metrics.totalIncome - metrics.totalExpenses).toLocaleString("en-IN")}
+              ₹{(metrics.totalIncome - metrics.totalExpenses).toLocaleString("en-IN")}
               </h3>
               <div className="w-full bg-neutral-900 h-1.5 rounded-full mt-3 overflow-hidden border border-neutral-800">
                 <div className="bg-neutral-400 h-full w-[99%]" />
@@ -376,15 +376,16 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Date</label>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-neutral-700 text-white appearance-none"
-                />
-              </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Date</label>
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    max={new Date().toISOString().split("T")[0]}
+                    className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-neutral-700 text-white appearance-none"
+                  />
+                </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">Notes</label>
