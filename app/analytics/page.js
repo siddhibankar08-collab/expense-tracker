@@ -230,7 +230,7 @@ export default function AnalyticsPage() {
 
             <div className="bg-[#121214] rounded-2xl p-5 border border-neutral-800">
               <div className="flex justify-between mb-3">
-                <p className="text-xs uppercase text-neutral-400">Balance</p>
+                <p className="text-xs uppercase text-neutral-400">Net Saving</p>
                 <div className="p-2 bg-white/5 rounded-xl text-neutral-400">
                   <Wallet size={16} />
                 </div>
