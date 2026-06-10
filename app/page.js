@@ -107,13 +107,13 @@ export default function Home() {
             {/* Card 2 */}
 <div className="group bg-[#121214] border border-neutral-800/80 rounded-2xl p-8 shadow-sm hover:border-neutral-400 hover:-translate-y-2 transition-all duration-300 ease-out cursor-pointer">
   <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-2xl mb-6 group-hover:bg-white group-hover:text-black transition-colors duration-300">
-    💰
+    📊
   </div>
   <h3 className="text-lg font-bold text-white mb-3 tracking-tight group-hover:text-neutral-200">
-    Smart Expense Tracking
+    Budget Health Monitor
   </h3>
   <p className="text-neutral-400 text-xs leading-relaxed">
-    Monitor daily spending, categorize expenses automatically, and gain clear insights into where your money goes.
+    Instantly see whether your finances are healthy, stable, or need attention with real-time budget analysis and spending insights.
   </p>
 </div>
 
