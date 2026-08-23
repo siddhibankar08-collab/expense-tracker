@@ -85,12 +85,30 @@ export default function TransactionsPage() {
       return;
     }
 
-    const data = transactions.map((tx) => ({
-      Date: tx.date || "",
-      "Running Balance": tx.balanceSnapshot || "",
-      Purpose: tx.purpose || "",
-      "Credit/Debit": tx.amount || "",
-    }));
+      const data = transactions.map((tx) => {
+        const isIncome = tx.type === "Income";
+
+        const numericString = tx.amount
+          ? tx.amount.replace(/[+₹,\s-]/g, "")
+          : "";
+
+        const numericValue =
+          numericString && !Number.isNaN(Number(numericString))
+            ? numericString // keep as string, not Number(...)
+            : "";
+
+        const creditValue = isIncome ? numericValue : "";
+        const debitValue = !isIncome ? numericValue : "";
+
+        // Use "-" when empty, and keep them as strings so Excel left-aligns
+        return {
+          Date: tx.date || "",
+          "Running Balance": tx.balanceSnapshot || "",
+          Purpose: tx.purpose || "",
+          Credit: creditValue !== "" ? creditValue : "-", // string
+          Debit: debitValue !== "" ? debitValue : "-",   // string
+        };
+      });
 
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
