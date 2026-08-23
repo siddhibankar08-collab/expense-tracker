@@ -16,14 +16,12 @@ export default function Home() {
           {/* Left Side Brand Layout */}
           <div className="flex items-center gap-4 relative z-10">
             {/* Logo Container in Green */}
-            <div className="relative p-1.5 bg-emerald-500/5 backdrop-blur-sm rounded-xl border border-emerald-500/20 shadow-md group transition-all duration-300 hover:border-emerald-400">
-              <div className="absolute inset-0 bg-emerald-500/5 rounded-xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="p-1.5 bg-zinc-950 rounded-xl border border-[#04d292] shadow-sm flex items-center justify-center shrink-0">
               <Image
-                src="/images/spendwiselogo.png"
+                src="/images/spend.png"
                 alt="SpendWise Logo"
                 width={50}
                 height={50}
-                className="object-contain relative z-10 transform group-hover:scale-105 transition-transform duration-300 invert sepia-emerald hue-rotate-60 brightness-125"
               />
             </div>
             
@@ -55,21 +53,20 @@ export default function Home() {
         <main className="flex flex-col items-center mt-16 md:mt-24 px-6 shrink-0 relative z-10">
           <div className="bg-[#222226] border border-neutral-700/50 px-6 py-1.5 rounded-full shadow-inner">
             <p className="text-xs md:text-sm font-medium text-neutral-300 tracking-wide">
-              Personal. Multishop. Simple.
+              Track. Save. Grow.
             </p>
           </div>
 
           <h1 className="text-3xl md:text-5xl lg:text-6xl font-black mt-8 text-center text-white tracking-tight leading-tight max-w-4xl">
-            Track every dollar across your
+            Track every transaction across 
           </h1>
 
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-neutral-500 mt-2 text-center tracking-tight leading-tight">
-            Life and Shops.
+             your Life
           </h1>
 
           <p className="text-center text-sm md:text-base mt-6 font-medium max-w-xl text-neutral-400 leading-relaxed">
-            Clean dashboards for your personal expenses and as many shops as
-            you run. No configuration setup needed — just pure clarity.
+            Clean dashboards for your personal expenses. No configuration setup needed — just pure clarity.
           </p>
 
           <Link href="/login">
@@ -108,17 +105,17 @@ export default function Home() {
             </div>
 
             {/* Card 2 */}
-            <div className="group bg-[#121214] border border-neutral-800/80 rounded-2xl p-8 shadow-sm hover:border-neutral-400 hover:-translate-y-2 transition-all duration-300 ease-out cursor-pointer">
-              <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-2xl mb-6 group-hover:bg-white group-hover:text-black transition-colors duration-300">
-                🏪
-              </div>
-              <h3 className="text-lg font-bold text-white mb-3 tracking-tight group-hover:text-neutral-200">
-                Multi-Shop Management
-              </h3>
-              <p className="text-neutral-400 text-xs leading-relaxed">
-                Manage multiple sub-outlets and business setups autonomously while keeping metrics centralized under one secure anchor.
-              </p>
-            </div>
+<div className="group bg-[#121214] border border-neutral-800/80 rounded-2xl p-8 shadow-sm hover:border-neutral-400 hover:-translate-y-2 transition-all duration-300 ease-out cursor-pointer">
+  <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-2xl mb-6 group-hover:bg-white group-hover:text-black transition-colors duration-300">
+    💳
+  </div>
+  <h3 className="text-lg font-bold text-white mb-3 tracking-tight group-hover:text-neutral-200">
+    Budget Health Monitor
+  </h3>
+  <p className="text-neutral-400 text-xs leading-relaxed">
+    Instantly see whether your finances are healthy, stable, or need attention with real-time budget analysis and spending insights.
+  </p>
+</div>
 
             {/* Card 3 */}
             <div className="group bg-[#121214] border border-neutral-800/80 rounded-2xl p-8 shadow-sm hover:border-neutral-400 hover:-translate-y-2 transition-all duration-300 ease-out cursor-pointer">

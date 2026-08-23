@@ -94,7 +94,7 @@ export default function SignUpPage() {
           <div className="w-full space-y-5 my-auto">
             
             <div className="space-y-1">
-              <h1 className="text-4xl font-black text-white tracking-tight">
+              <h1 className="text-3xl font-black text-white tracking-tight">
                 Create Account
               </h1>
               <p className="text-sm text-neutral-400 font-medium">
@@ -223,11 +223,6 @@ export default function SignUpPage() {
                 </span>
               </p>
             </div>
-
-            <p className="text-center text-[10px] font-medium text-neutral-600 leading-relaxed pt-2 border-t border-neutral-900">
-              Your data parameters are securely encrypted. <br />
-              SpendWise enforces strict personal profile data isolation.
-            </p>
 
           </div>
         </div>

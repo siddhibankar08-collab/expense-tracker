@@ -11,7 +11,7 @@ import {
   Receipt,
   Settings,
   Plus,
-  TrendingUp,
+  //TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
   X,
@@ -40,7 +40,6 @@ export default function DashboardPage() {
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAmounts, setShowAmounts] = useState(true);
-
   useEffect(() => {
     const fetchDashboardData = async () => {
       setLoading(true);
@@ -102,7 +101,7 @@ export default function DashboardPage() {
         throw new Error("Please enter a valid amount");
       }
       if (!date) throw new Error("Please select a date");
-      if (!notes.trim()) throw new Error("Please add a description");
+      const finalDescription = notes.trim() || "-";
 
       const backendType = transactionType.toLowerCase() === "income" ? "credit" : "debit";
       const currentRunningBalance = Number(metrics.balance || 0);
@@ -111,15 +110,15 @@ export default function DashboardPage() {
         : currentRunningBalance - numericAmount;
 
       const payload = {
-        user_id: user.user_id,
-        type: backendType,
-        date: date,
-        description: notes,
-        credit_amount: backendType === "credit" ? numericAmount : null,
-        debit_amount: backendType === "debit" ? numericAmount : null,
-        balance: computedNewBalance,
-        due_amount: null,
-      };
+  user_id: user.user_id,
+  type: backendType,
+  date: date,
+  description: finalDescription, //  Updated here
+  credit_amount: backendType === "credit" ? numericAmount : null,
+  debit_amount: backendType === "debit" ? numericAmount : null,
+  balance: computedNewBalance,
+  due_amount: null,
+};
 
       const { error } = await supabase.from("expense").insert([payload]);
 
@@ -158,7 +157,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-zinc-900 flex relative">
+    <div className="min-h-screen bg-black  text-zinc-900 flex relative">
       
       {/* SIDEBAR (SOFT LIGHT BLACK / CHARCOAL) */}
 {/* SIDEBAR (RICH BLACK) */}
@@ -176,7 +175,6 @@ export default function DashboardPage() {
               <h1 className="text-emerald-400 text-xl font-black tracking-tight leading-none">
                 Spend<span className="text-emerald">Wise</span>
               </h1>
-              <p className="text-[10px] font-semibold text-zinc-400 tracking-wider uppercase mt-2">Personal Finance</p>
             </div>
           </div>
         </div>
