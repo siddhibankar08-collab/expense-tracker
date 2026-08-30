@@ -21,9 +21,9 @@ export default function SettingsPage() {
 
   // Core personal finance settings
   const [name, setName] = useState("");
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  // const [currentPassword, setCurrentPassword] = useState("");
+  // const [newPassword, setNewPassword] = useState("");
+  // const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
     const loadUser = async () => {
@@ -217,7 +217,7 @@ export default function SettingsPage() {
             </button>
           </div>
 
-          {/* CHANGE PASSWORD CARD */}
+          {/* CHANGE PASSWORD CARD - commented out (feature not functional)
           <div className="bg-[#121214] rounded-2xl border border-neutral-800 p-6">
             <div className="mb-6">
               <h2 className="font-bold text-white text-lg">Change Password</h2>
@@ -265,6 +265,7 @@ export default function SettingsPage() {
               Update Password
             </button>
           </div>
+          */}
 
         {/* DANGER ZONE */}
         <div className="bg-rose-950/10 border border-rose-900/30 rounded-2xl p-6">
