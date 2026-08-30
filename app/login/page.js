@@ -31,7 +31,7 @@ export default function LoginPage() {
     setShowPassword(!showPassword);
   };
 
-  async function handleGoogleLogin() {
+  /*async function handleGoogleLogin() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -42,7 +42,7 @@ export default function LoginPage() {
     if (error) {
       console.log("Google login error:", error.message);
     }
-  }
+  }*/
 
   return (
     <div className="h-screen w-screen flex bg-[#0A0A0C] text-neutral-100 font-sans antialiased overflow-hidden">
@@ -154,13 +154,13 @@ export default function LoginPage() {
             <div className="flex-1 h-px bg-neutral-800"></div>
           </div>
 
-          {/* Google Single Sign-On Button */}
+          {/* 
           <div>
             <button
               onClick={handleGoogleLogin} 
               className="w-full h-12 rounded-xl bg-[#121214] hover:bg-[#1C1C1E] border border-neutral-800 hover:border-neutral-700 text-neutral-200 text-sm font-bold tracking-wide transition-all flex items-center justify-center gap-3 shadow-sm"
             >
-              {/* Original Google SVG Icon */}
+              
               <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
@@ -181,7 +181,7 @@ export default function LoginPage() {
               </svg>
               Continue with Google
             </button>
-          </div>
+          </div>*/}
 
           {/* Navigation Anchor */}
           <div className="text-center pt-1">

@@ -11,7 +11,7 @@ import {
   Receipt,
   Settings,
   Plus,
-  TrendingUp,
+  //TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
   X,
